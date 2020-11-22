@@ -142,6 +142,13 @@ public class HiveCopyEntityHelper {
    */
   public static final String HIVE_PARTITION_EXTENDED_FILTER_TYPE = HiveDatasetFinder.HIVE_DATASET_PREFIX + ".extendedFilterType";
 
+
+  /**
+   * Config to specify class for ensuring that the target directory exists, generally for cloud providers
+   * */
+  public static final String HIVE_TARGET_DIRECTORY_CLIENT_CLASS
+      = HiveDatasetFinder.HIVE_DATASET_PREFIX + ".copy.target.directoryClientClass";
+
   static final Gson gson = new Gson();
 
   private static final String source_client = "source_client";
@@ -183,7 +190,7 @@ public class HiveCopyEntityHelper {
   private Optional<? extends HivePartitionExtendedFilter> hivePartitionExtendedFilter;
   private final Optional<Predicate<HivePartitionFileSet>> fastPartitionSkip;
   private final Optional<Predicate<HiveCopyEntityHelper>> fastTableSkip;
-
+  private final HiveTargetDirectoryClient targetClient;
   private final DeregisterFileDeleteMethod deleteMethod;
 
   private final Optional<CommitStep> tableRegistrationStep;
@@ -353,11 +360,21 @@ public class HiveCopyEntityHelper {
         } else {
           this.existingTargetTable = Optional.absent();
         }
-
+        String directoryClientClass = this.dataset.getProperties().containsKey(HIVE_TARGET_DIRECTORY_CLIENT_CLASS) ?
+            this.dataset.getProperties().getProperty(HIVE_TARGET_DIRECTORY_CLIENT_CLASS) :
+            HiveTargetDirectoryClient.class.getName();
+        this.targetClient = GobblinConstructorUtils.invokeConstructor(HiveTargetDirectoryClient.class,
+            new ClassAliasResolver(HiveTargetDirectoryClient.class).resolve(directoryClientClass),
+            this.dataset.getProperties());
         // Constructing CommitStep object for table registration
-        Path targetPath = getTargetLocation(this.dataset.fs, this.targetFs, this.dataset.table.getDataLocation(),
-            Optional.<Partition> absent());
+        Path targetPath = this.targetClient.getOrCreateTargetPath(
+            getTargetLocation(this.dataset.fs, this.targetFs, this.dataset.table.getDataLocation(),
+                Optional.<Partition>absent()));
+
+        log.info("TARGET PATH AT: " + targetPath.toUri().getRawPath());
+
         this.targetTable = getTargetTable(this.dataset.table, targetPath);
+
         HiveSpec tableHiveSpec = new SimpleHiveSpec.Builder<>(targetPath)
             .withTable(HiveMetaStoreUtils.getHiveTable(this.targetTable.getTTable())).build();
 
