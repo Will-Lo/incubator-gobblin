@@ -912,13 +912,14 @@ public abstract class AbstractJobLauncher implements JobLauncher {
     }
 
     try {
-      if (this.jobContext.shouldCleanupStagingDataPerTask()) {
+      if (this.jobContext.shouldCleanupStagingDataPerTask() || jobState.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR)) {
         if (workUnits.isSafeToMaterialize()) {
           Closer closer = Closer.create();
           Map<String, ParallelRunner> parallelRunners = Maps.newHashMap();
           try {
             for (WorkUnit workUnit : JobLauncherUtils.flattenWorkUnits(workUnits.getMaterializedWorkUnitCollection())) {
-              JobLauncherUtils.cleanTaskStagingData(new WorkUnitState(workUnit, jobState), LOG, closer, parallelRunners);
+              JobLauncherUtils.cleanTaskStagingData(new WorkUnitState(workUnit, jobState), LOG, closer,
+                parallelRunners);
             }
           } catch (Throwable t) {
             throw closer.rethrow(t);
@@ -939,8 +940,6 @@ public abstract class AbstractJobLauncher implements JobLauncher {
       LOG.error("Failed to clean leftover staging data", t);
     }
   }
-
-
 
   private static String getJobIdPrefix(String jobId) {
     return jobId.substring(0, jobId.lastIndexOf(Id.Job.SEPARATOR) + 1);
@@ -972,7 +971,7 @@ public abstract class AbstractJobLauncher implements JobLauncher {
       throw new JobException("Failed to check unfinished commit sequences", e);
     }
 
-    if (this.jobContext.shouldCleanupStagingDataPerTask()) {
+    if (this.jobContext.shouldCleanupStagingDataPerTask() || jobState.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR)) {
       cleanupStagingDataPerTask(jobState);
     } else {
       cleanupStagingDataForEntireJob(jobState);

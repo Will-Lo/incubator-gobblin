@@ -79,7 +79,7 @@ import org.apache.gobblin.util.WriterUtils;
 @Slf4j
 public class CopyDataPublisher extends DataPublisher implements UnpublishedHandling {
 
-  private final Path writerOutputDir;
+  private Path writerOutputDir;
 
   @Override
   public boolean isThreadSafe() {
@@ -116,10 +116,11 @@ public class CopyDataPublisher extends DataPublisher implements UnpublishedHandl
     String uri = this.state.getProp(ConfigurationKeys.WRITER_FILE_SYSTEM_URI, ConfigurationKeys.LOCAL_FS_URI);
     this.fs = FileSystem.get(URI.create(uri), WriterUtils.getFsConfiguration(state));
 
-    FileAwareInputStreamDataWriterBuilder.setJobSpecificOutputPaths(state);
-
-    this.writerOutputDir = new Path(state.getProp(ConfigurationKeys.WRITER_OUTPUT_DIR));
-
+    // If directories are sharded by dataset, initialize writers using workunit state instead
+    if (!state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR)) {
+      FileAwareInputStreamDataWriterBuilder.setJobSpecificOutputPaths(state);
+      this.writerOutputDir = new Path(state.getProp(ConfigurationKeys.WRITER_OUTPUT_DIR));
+    }
     MetricContext metricContext =
         Instrumented.getMetricContext(state, CopyDataPublisher.class, GobblinMetrics.getCustomTagsFromState(state));
 
@@ -225,8 +226,13 @@ public class CopyDataPublisher extends DataPublisher implements UnpublishedHandl
     Preconditions.checkArgument(!datasetWorkUnitStates.isEmpty(),
         "publishFileSet received an empty collection work units. This is an error in code.");
 
-    CopyableDatasetMetadata metadata = CopyableDatasetMetadata
-        .deserialize(datasetWorkUnitStates.iterator().next().getProp(CopySource.SERIALIZED_COPYABLE_DATASET));
+    CopyableDatasetMetadata metadata = CopyableDatasetMetadata.deserialize(
+        datasetWorkUnitStates.iterator().next().getProp(CopySource.SERIALIZED_COPYABLE_DATASET));
+
+    // Get the dataset specific sharded directory if configured
+    if (state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR)) {
+      this.writerOutputDir = new Path(datasetWorkUnitStates.iterator().next().getProp(ConfigurationKeys.WRITER_OUTPUT_DIR));
+    }
     Path datasetWriterOutputPath = new Path(this.writerOutputDir, datasetAndPartition.identifier());
 
     log.info("Merging all split work units.");

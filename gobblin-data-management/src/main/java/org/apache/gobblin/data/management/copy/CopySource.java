@@ -54,7 +54,6 @@ import org.apache.gobblin.configuration.WorkUnitState;
 import org.apache.gobblin.data.management.copy.extractor.EmptyExtractor;
 import org.apache.gobblin.data.management.copy.extractor.FileAwareInputStreamExtractor;
 import org.apache.gobblin.data.management.copy.hive.HiveDataset;
-import org.apache.gobblin.data.management.copy.hive.HiveDatasetFinder;
 import org.apache.gobblin.data.management.copy.prioritization.FileSetComparator;
 import org.apache.gobblin.data.management.copy.publisher.CopyEventSubmitterHelper;
 import org.apache.gobblin.data.management.copy.replication.ConfigBasedDataset;
@@ -132,8 +131,6 @@ public class CopySource extends AbstractSource<String, FileAwareInputStream> {
   public static final String FILESET_TOTAL_ENTITIES = "fileset.total.entities";
   public static final String FILESET_TOTAL_SIZE_IN_BYTES = "fileset.total.size";
   public static final String SCHEMA_CHECK_ENABLED = "shcema.check.enabled";
-  public static final String DATASET_STAGING_DIR_PATH = "dataset.staging.dir.path";
-  public static final String DATASET_STAGING_PATH = "dataset.staging.path";
   public final static boolean DEFAULT_SCHEMA_CHECK_ENABLED = false;
 
   private static final String WORK_UNIT_WEIGHT = CopyConfiguration.COPY_PREFIX + ".workUnitWeight";
@@ -357,11 +354,10 @@ public class CopySource extends AbstractSource<String, FileAwareInputStream> {
 
         Extract extract = new Extract(Extract.TableType.SNAPSHOT_ONLY, CopyConfiguration.COPY_PREFIX, extractId);
         List<WorkUnit> workUnitsForPartition = Lists.newArrayList();
-        for (CopyEntity copyEntity : fileSet.getFiles()) {
 
+        for (CopyEntity copyEntity : fileSet.getFiles()) {
           CopyableDatasetMetadata metadata = new CopyableDatasetMetadata(this.copyableDataset);
           CopyEntity.DatasetAndPartition datasetAndPartition = copyEntity.getDatasetAndPartition(metadata);
-
           WorkUnit workUnit = new WorkUnit(extract);
           workUnit.addAll(this.state);
           if(this.copyableDataset instanceof ConfigBasedDataset && ((ConfigBasedDataset)this.copyableDataset).schemaCheckEnabled()) {
@@ -370,9 +366,25 @@ public class CopySource extends AbstractSource<String, FileAwareInputStream> {
               workUnit.setProp(ConfigurationKeys.COPY_EXPECTED_SCHEMA, ((ConfigBasedDataset) this.copyableDataset).getExpectedSchema());
             }
           }
-          if ((this.copyableDataset instanceof HiveDataset) && (state.getPropAsBoolean(ConfigurationKeys.IS_DATASET_STAGING_DIR_USED,false))) {
-            workUnit.setProp(DATASET_STAGING_DIR_PATH, ((HiveDataset) this.copyableDataset).getProperties().getProperty(DATASET_STAGING_PATH));
+
+          // Ensure that the writer temporary directories are contained within the dataset shard
+          if ((this.copyableDataset instanceof HiveDataset) && (state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR,false))) {
+            String datasetPath = ((HiveDataset) this.copyableDataset).datasetPath;
+            String writerStagingSuffix = state.contains(ConfigurationKeys.WRITER_STAGING_DIR) ?
+                state.getProp(ConfigurationKeys.WRITER_STAGING_DIR) : ConfigurationKeys.STAGING_DIR_DEFAULT_SUFFIX;
+            String writerOutputSuffix = state.contains(ConfigurationKeys.WRITER_OUTPUT_DIR) ?
+                state.getProp(ConfigurationKeys.WRITER_OUTPUT_DIR) : ConfigurationKeys.OUTPUT_DIR_DEFAULT_SUFFIX;
+            String rowErrFileSuffix = state.contains(ConfigurationKeys.ROW_LEVEL_ERR_FILE) ?
+                state.getProp(ConfigurationKeys.ROW_LEVEL_ERR_FILE) : ConfigurationKeys.ROW_LEVEL_ERR_FILE_DEFAULT_SUFFIX;
+
+            workUnit.setProp(ConfigurationKeys.WRITER_STAGING_DIR, datasetPath + writerStagingSuffix + "/" + state
+                .getProp(ConfigurationKeys.JOB_NAME_KEY) + "/" + state.getProp(ConfigurationKeys.JOB_ID_KEY));
+
+            workUnit.setProp(ConfigurationKeys.WRITER_OUTPUT_DIR, datasetPath + writerOutputSuffix + "/" +
+                state.getProp(ConfigurationKeys.JOB_NAME_KEY) + "/" + state.getProp(ConfigurationKeys.JOB_ID_KEY));
+            workUnit.setProp(ConfigurationKeys.ROW_LEVEL_ERR_FILE, datasetPath + rowErrFileSuffix);
           }
+
           serializeCopyEntity(workUnit, copyEntity);
           serializeCopyableDataset(workUnit, metadata);
           GobblinMetrics.addCustomTagToState(workUnit,

@@ -84,8 +84,6 @@ public class FileAwareInputStreamDataWriter extends InstrumentedDataWriter<FileA
   public static final boolean DEFAULT_GOBBLIN_COPY_CHECK_FILESIZE = false;
   public static final String GOBBLIN_COPY_TASK_OVERWRITE_ON_COMMIT = "gobblin.copy.task.overwrite.on.commit";
   public static final boolean DEFAULT_GOBBLIN_COPY_TASK_OVERWRITE_ON_COMMIT = false;
-  public static final String STAGING_DIR_SUFFIX = "/taskStaging";
-  public static final String DATASET_STAGING_DIR_PATH = "dataset.staging.dir.path";
 
   protected final AtomicLong bytesWritten = new AtomicLong();
   protected final AtomicLong filesWritten = new AtomicLong();
@@ -101,7 +99,6 @@ public class FileAwareInputStreamDataWriter extends InstrumentedDataWriter<FileA
   private final boolean checkFileSize;
   private final Options.Rename renameOptions;
   private final FileContext fileContext;
-
   protected final Meter copySpeedMeter;
 
   protected final Optional<String> writerAttemptIdOptional;
@@ -146,20 +143,8 @@ public class FileAwareInputStreamDataWriter extends InstrumentedDataWriter<FileA
       this.fs = FileSystem.get(uri, conf);
     }
     this.fileContext = FileContext.getFileContext(uri, conf);
-
-    /**
-     * The staging directory defines the path of staging folder.
-     * USER_DEFINED_STATIC_STAGING_DIR_FLAG shall be set to true when user wants to specify the staging folder and the directory can be fetched through USER_DEFINED_STATIC_STAGING_DIR property.
-     * IS_DATASET_STAGING_DIR_USED when true creates the staging folder within a dataset location for dataset copying.
-     * Else system will calculate the staging directory automatically.
-     */
     if (state.getPropAsBoolean(ConfigurationKeys.USER_DEFINED_STAGING_DIR_FLAG,false)) {
       this.stagingDir = new Path(state.getProp(ConfigurationKeys.USER_DEFINED_STATIC_STAGING_DIR));
-    } else if ((state.getPropAsBoolean(ConfigurationKeys.IS_DATASET_STAGING_DIR_USED,false))) {
-      String stgDir = state.getProp(DATASET_STAGING_DIR_PATH) + STAGING_DIR_SUFFIX + "/" + state.getProp(ConfigurationKeys.JOB_NAME_KEY ) + "/" + state.getProp(ConfigurationKeys.JOB_ID_KEY);
-      state.setProp(ConfigurationKeys.WRITER_STAGING_DIR,stgDir);
-      this.stagingDir = this.writerAttemptIdOptional.isPresent() ? WriterUtils.getWriterStagingDir(state, numBranches, branchId, this.writerAttemptIdOptional.get())
-          : WriterUtils.getWriterStagingDir(state, numBranches, branchId);
     } else {
       this.stagingDir = this.writerAttemptIdOptional.isPresent() ? WriterUtils.getWriterStagingDir(state, numBranches, branchId, this.writerAttemptIdOptional.get())
           : WriterUtils.getWriterStagingDir(state, numBranches, branchId);
@@ -347,8 +332,7 @@ public class FileAwareInputStreamDataWriter extends InstrumentedDataWriter<FileA
   }
 
   public static Path getOutputDir(State state) {
-    return new Path(
-        state.getProp(ForkOperatorUtils.getPropertyNameForBranch(ConfigurationKeys.WRITER_OUTPUT_DIR, 1, 0)));
+    return new Path(state.getProp(ForkOperatorUtils.getPropertyNameForBranch(ConfigurationKeys.WRITER_OUTPUT_DIR, 1, 0)));
   }
 
   /**

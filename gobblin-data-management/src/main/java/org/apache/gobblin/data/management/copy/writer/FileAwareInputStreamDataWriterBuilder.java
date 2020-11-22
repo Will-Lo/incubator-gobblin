@@ -32,6 +32,7 @@ import org.apache.hadoop.fs.Path;
  * A {@link DataWriterBuilder} for {@link FileAwareInputStreamDataWriter}
  */
 public class FileAwareInputStreamDataWriterBuilder extends DataWriterBuilder<String, FileAwareInputStream> {
+
   @Override
   public final DataWriter<FileAwareInputStream> build() throws IOException {
     setJobSpecificOutputPaths(this.destination.getProperties());
@@ -52,14 +53,13 @@ public class FileAwareInputStreamDataWriterBuilder extends DataWriterBuilder<Str
   public synchronized static void setJobSpecificOutputPaths(State state) {
 
     // Other tasks may have set this already
+    // If reading from the sharded dataset path, writer directory paths are stored in the workunit state
     if (!StringUtils.containsIgnoreCase(state.getProp(ConfigurationKeys.WRITER_STAGING_DIR),
-        state.getProp(ConfigurationKeys.JOB_ID_KEY))) {
-
-      state.setProp(ConfigurationKeys.WRITER_STAGING_DIR, new Path(state.getProp(ConfigurationKeys.WRITER_STAGING_DIR),
-          state.getProp(ConfigurationKeys.JOB_ID_KEY)));
-      state.setProp(ConfigurationKeys.WRITER_OUTPUT_DIR, new Path(state.getProp(ConfigurationKeys.WRITER_OUTPUT_DIR),
-          state.getProp(ConfigurationKeys.JOB_ID_KEY)));
-
+        state.getProp(ConfigurationKeys.JOB_ID_KEY)) && !state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR)) {
+        state.setProp(ConfigurationKeys.WRITER_STAGING_DIR, new Path(state.getProp(ConfigurationKeys.WRITER_STAGING_DIR),
+            state.getProp(ConfigurationKeys.JOB_ID_KEY)));
+        state.setProp(ConfigurationKeys.WRITER_OUTPUT_DIR, new Path(state.getProp(ConfigurationKeys.WRITER_OUTPUT_DIR),
+            state.getProp(ConfigurationKeys.JOB_ID_KEY)));
     }
 
   }
