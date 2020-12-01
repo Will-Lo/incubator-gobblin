@@ -34,6 +34,11 @@ import org.apache.gobblin.data.management.copy.entities.PostPublishStep;
 import org.apache.gobblin.data.management.copy.hive.HiveCopyEntityHelper.DeregisterFileDeleteMethod;
 import org.apache.gobblin.hive.HiveRegProps;
 import org.apache.gobblin.metrics.event.MultiTimingEvent;
+
+import org.apache.gobblin.configuration.ConfigurationKeys;
+import org.apache.gobblin.data.management.copy.CopyConfiguration;
+import org.apache.gobblin.hive.HiveMetastoreClientPool;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
@@ -359,6 +364,29 @@ public class HiveCopyEntityHelperTest {
     meta_table.getSd().getSerdeInfo().setParameters(storageParams);
     HiveCopyEntityHelper.addMetadataToTargetTable(meta_table, new Path("newPath"), "testDB", 10L);
     Assert.assertFalse(meta_table.getSd().getSerdeInfo().getParameters().containsKey("path"));
+  }
+
+  @Test
+  public void testGetTargetLocationDefault() throws Exception {
+
+    Properties copyProperties = new Properties();
+    copyProperties.put(ConfigurationKeys.DATA_PUBLISHER_FINAL_DIR, "/target");
+    Path testPath = new Path("/testPath");
+    Properties hiveProperties = new Properties();
+    Table table =  new Table(Table.getEmptyTable("testDB", "testTable"));
+    table.setDataLocation(testPath);
+    HiveMetastoreClientPool pool = HiveMetastoreClientPool.get(new Properties(), Optional.absent());
+    HiveDataset dataset = new HiveDataset(new LocalFileSystem(), pool, table, hiveProperties);
+
+    HiveCopyEntityHelper helper = new HiveCopyEntityHelper(dataset,
+        CopyConfiguration.builder(FileSystem.getLocal(new Configuration()), copyProperties).build(),
+        new LocalFileSystem()
+    );
+
+    FileSystem fs = new LocalFileSystem();
+    // test that by default, the input path is the same as the output path
+    Path path = helper.getTargetLocation(fs, testPath, Optional.<Partition>absent());
+    Assert.assertEquals(testPath.toUri().getRawPath(), path.toUri().getRawPath());
   }
 
   private boolean containsPath(Collection<FileStatus> statuses, Path path) {
