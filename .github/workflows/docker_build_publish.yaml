@@ -27,7 +27,7 @@ on:
       - 'v*'
 
 env:
-  IMAGE_NAME: Will-Lo/incubator-gobblin
+  IMAGE_NAME: ghcr.io/Will-Lo/incubator-gobblin
 
 jobs:
   build_and_push_to_registry:
