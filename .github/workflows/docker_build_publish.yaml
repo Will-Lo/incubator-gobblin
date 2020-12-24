@@ -61,4 +61,4 @@ jobs:
         with:
           tags: ${{ steps.docker_meta.outputs.tags }}
           push: true
-          file: ./gobblin-docker/gobblin-standalone/alpine-gobblin-latest/Dockerfile
+          file: ./gobblin-docker/gobblin/alpine-gobblin-latest/Dockerfile
