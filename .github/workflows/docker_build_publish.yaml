@@ -43,7 +43,7 @@ jobs:
       - name: Build SHA Tag
         id: build_tag
         run: |
-          if [[ github.event_name == 'release' ]]; then
+          if [[ ${{ github.event_name == 'release' }} ]]; then
            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha }}, ${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}, ${{ env.IMAGE_NAME }}:latest"
           else
             TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
