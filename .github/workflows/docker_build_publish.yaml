@@ -41,13 +41,13 @@ jobs:
     outputs:
       tag: ${{ steps.build_tag.outputs.tag }}
     steps:
-      - name: Build SHA Tag
+      - name: Build Docker Tag
         id: build_tag
         run: |
           if [[ ${{ github.event_name }} == 'release' ]]; then
-            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha }}, ${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}, ${{ env.IMAGE_NAME }}:latest"
+            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha:0:7 }}, ${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}, ${{ env.IMAGE_NAME }}:latest"
           else
-            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
+            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha:0:7 }}"
           fi
           echo "tag=$TAG"
           echo "::set-output name=tag::$TAG"
@@ -72,9 +72,6 @@ jobs:
 #          registry: ghcr.io
 #          username: ${{ github.repository_owner }}
 #          password: ${{ secrets.CR_PAT }}
-      - name: Check tags
-        run: |
-          echo "Tag=${{ needs.setup.outputs.tag }}"
       - name: Build Images and Publish
         uses: docker/build-push-action@v2
         with:
