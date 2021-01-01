@@ -22,32 +22,48 @@ on:
     branches:
       - master
 
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'gobblin-docker/**'
+      - '.github/workflows/docker_build_publish.yaml'
   release:
-    tags:
-      - 'v*'
+    types: [published, edited]
 
 env:
-  IMAGE_NAME: apache/gobblin
+  IMAGE_NAME: will97/gobblin
 
 jobs:
+  setup:
+    name: Build docker image tags
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.build_tag.outputs.tag }}
+    steps:
+      - name: Build SHA Tag
+        id: build_tag
+        run: |
+          if [[ ${{ github.event_name }} == 'release' ]]; then
+            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha }}, ${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}, ${{ env.IMAGE_NAME }}:latest"
+          else
+            TAG="${{ env.IMAGE_NAME }}:sha-${{ github.sha }}"
+          fi
+          echo "tag=$TAG"
+          echo "::set-output name=tag::$TAG"
   build_and_push_to_registry:
     name: Build docker images and publish to DockerHub
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      - name: Docker meta
-        id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          images: ${{ env.IMAGE_NAME }} # list of Docker images to use as base name for tags
-          tag-sha: true # add git short SHA as Docker tag
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USER }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 #      - name: Login to GitHub Container Registry
 #        if: github.event_name != 'pull_request'
@@ -56,9 +72,12 @@ jobs:
 #          registry: ghcr.io
 #          username: ${{ github.repository_owner }}
 #          password: ${{ secrets.CR_PAT }}
+      - name: Check tags
+        run: |
+          echo "Tag=${{ needs.setup.outputs.tag }}"
       - name: Build Images and Publish
         uses: docker/build-push-action@v2
         with:
-          tags: ${{ steps.docker_meta.outputs.tags }}
-          push: true
+          tags: ${{ needs.setup.outputs.tag }}
+          push: ${{ github.event_name != 'pull_request' }}
           file: ./gobblin-docker/gobblin/alpine-gobblin-latest/Dockerfile
