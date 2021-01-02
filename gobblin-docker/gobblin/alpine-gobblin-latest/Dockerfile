@@ -21,7 +21,7 @@ ARG GOBBLIN_FLAVOR=standard
 # copy the entire project folder
 COPY . .
 RUN gradle build -x findbugsMain -x test -x rat -x checkstyleMain -x javadoc -x checkstyleTest -PgobblinFlavor=${GOBBLIN_FLAVOR} --no-daemon && \
-    tar -xvf ./build/gobblin-distribution/distributions/*.tar.gz && \
+    tar -xvf ./build/gobblin-distribution/distributions/*.tar.gz
 
 FROM openjdk:8-jre-alpine
 WORKDIR /home/gobblin/
