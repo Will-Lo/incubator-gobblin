@@ -35,23 +35,6 @@ env:
   IMAGE_NAME: will97/gobblin
 
 jobs:
-  setup:
-    name: Build docker image tags
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.build_tag.outputs.tag }}
-    steps:
-      - name: Build Docker Tag
-        id: build_tag
-        run: |
-          SHA=`echo ${{ github.sha }} | head -c 7`
-          if [[ ${{ github.event_name }} == 'release' ]]; then
-            TAG="${{ env.IMAGE_NAME }}:sha-$SHA, ${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}, ${{ env.IMAGE_NAME }}:latest"
-          else
-            TAG="${{ env.IMAGE_NAME }}:sha-$SHA"
-          fi
-          echo "tag=$TAG"
-          echo "::set-output name=tag::$TAG"
   build_and_push_to_registry:
     name: Build docker images and publish to DockerHub
     runs-on: ubuntu-latest
