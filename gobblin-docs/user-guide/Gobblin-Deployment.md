@@ -38,7 +38,7 @@ The digram below shows the architecture of Gobblin on Hadoop MapReduce. As the d
 In this mode, a `MRJobLauncher` is used to launch and run a Gobblin job on Hadoop MapReduce, following the steps below:
 
 1. Creating an instance of the `Source` class specified in the job configuration and getting the list of `WorkUnit`s to do.
-2. Serializing each `WorkUnit` into a file on HDFS that will be read later by a mapper.
+2. Serializing each `WorkUnit`  a file on HDFS that will be read later by a mapper.
 3. Creating a file that lists the paths of the files storing serialized `WorkUnit`s.
 4. Creating and configuring a mapper-only Hadoop MapReduce job that takes the file created in step 3 as input.
 5. Starting the MapReduce job to run on the cluster of choice and waiting for it to finish.
