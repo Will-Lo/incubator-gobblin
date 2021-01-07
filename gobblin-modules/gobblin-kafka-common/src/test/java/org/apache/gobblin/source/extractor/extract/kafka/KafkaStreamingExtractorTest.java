@@ -30,7 +30,7 @@ import org.apache.gobblin.publisher.DataPublisher;
 import org.apache.gobblin.source.extractor.DataRecordException;
 import org.apache.gobblin.source.extractor.extract.FlushingExtractor;
 
-
+@Test(groups = { "disabledOnTravis" })
 public class KafkaStreamingExtractorTest {
   private KafkaStreamingExtractor streamingExtractor;
   private final int numPartitions = 3;
