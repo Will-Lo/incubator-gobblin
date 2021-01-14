@@ -84,4 +84,4 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Run all tests
         run: |
-          ./gradlew -PskipTestGroup=disabledOnTravis -Dgobblin.metastore.testing.embeddedMysqlEnabled=false -PusePreinstalledMysql=true -Dorg.gradle.daemon=false test
+          ./gradlew -PskipTestGroup=disabledOnTravis,gobblin.elasticsearch -Dgobblin.metastore.testing.embeddedMysqlEnabled=false -PusePreinstalledMysql=true -Dorg.gradle.daemon=false test
