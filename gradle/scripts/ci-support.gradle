@@ -12,7 +12,7 @@ task testMatrix {
             def checkTaskPaths = checkTasks
                     .collect { it.path }
 
-            println(JsonOutput.toJson(checkTaskPaths))
+            println('CI Matrix: ' + JsonOutput.toJson(checkTaskPaths))
         }
     }
 }
@@ -27,8 +27,8 @@ gradle.taskGraph.whenReady {
             }
             subproject.tasks.findByName("shadowJar")?.enabled = false
             subproject.tasks.findByName("javadoc")?.enabled = false
-            subproject.tasks.findByName("delombok")?.enabled = false
-            subproject.tasks.findByName("japicmp")?.enabled = false
+            subproject.tasks.findByName("findbugsMain")?.enabled = false
+            subproject.tasks.findByName("checkstyleMain")?.enabled = false
         }
     }
 }
