@@ -49,15 +49,16 @@ jobs:
         run: |
           ./gradlew clean build -x test -x javadoc -Dorg.gradle.parallel=true -Dorg.gradle.daemon=false
   run_tests:
+    timeout-minutes: 60
     env:
       GOBBLIN_GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dgobblin.metastore.testing.embeddedMysqlEnabled=false -PusePreinstalledMysql=true"
       TEST_GROUP1: "gobbin.yarn,gobblin.runtime,gobblin.cluster,gobblin.compaction,gobblin.util,gobblin.writer"
     strategy:
       matrix:
         command: [
-          "./gradlew -PskipTestGroup=disabledOnTravis,gobblin.elasticsearch -Dorg.gradle.parallel=false -DjacocoBuild=1 $GOBBLIN_GRADLE_OPTS jacocoTestCoverage",
-          "./gradlew -PskipTestGroup=disabledOnTravis,gobblin.elasticsearch -PrunTestGroups=$TEST_GROUP1 -Dorg.gradle.parallel=false $GOBBLIN_GRADLE_OPTS test",
-          "./gradlew -PskipTestGroup=disabledOnTravis,gobblin.elasticsearch,$TEST_GROUP1 -Dorg.gradle.parallel=false $GOBBLIN_GRADLE_OPTS test"
+          "./gradlew -PskipTestGroup=disabledOnTravis -Dorg.gradle.parallel=false -DjacocoBuild=1 $GOBBLIN_GRADLE_OPTS jacocoTestCoverage",
+          "./gradlew -PskipTestGroup=disabledOnTravis -PrunTestGroups=$TEST_GROUP1 -Dorg.gradle.parallel=false $GOBBLIN_GRADLE_OPTS test",
+          "./gradlew -PskipTestGroup=disabledOnTravis,$TEST_GROUP1 -Dorg.gradle.parallel=false $GOBBLIN_GRADLE_OPTS test"
         ]
     runs-on: ubuntu-latest
     needs: build
