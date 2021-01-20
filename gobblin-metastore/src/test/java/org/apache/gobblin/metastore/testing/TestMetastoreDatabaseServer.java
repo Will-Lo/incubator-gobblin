@@ -111,7 +111,7 @@ class TestMetastoreDatabaseServer implements Closeable {
            .put(EMBEDDED_MYSQL_ENABLED_FULL_KEY, true)
            .put(DBUSER_NAME_FULL_KEY, "testUser")
            .put(DBUSER_PASSWORD_FULL_KEY, "testPassword")
-           .put(DBHOST_FULL_KEY, "127.0.0.1")
+           .put(DBHOST_FULL_KEY, "localhost")
            .put(DBPORT_FULL_KEY, 3306)
            .build());
   }
