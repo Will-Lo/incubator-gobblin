@@ -147,12 +147,17 @@ jobs:
           ./gradlew getGroupedTests -PgroupName="${{matrix.test-group}}" > temp.txt
           TASKS=$(sed -n 's/CI Task: //p' temp.txt)
           echo $TASKS
+
           n=0
           until [ "$n" -ge 3 ]
           do
-            ./gradlew -PskipTestGroup=disabledOnCI $GOBBLIN_GRADLE_OPTS $TASKS -Dorg.gradle.parallel=false && break
+            ./gradlew -PskipTestGroup=disabledOnCI $GOBBLIN_GRADLE_OPTS $TASKS -Dorg.gradle.parallel=false
+            ret_value=$?
+            [ $ret_value -eq 0 ] && break
             n=$((n+1))
-            echo "Tests failed, retry attempt number $n"
+            if [[ $n -le 3 ]] then;
+              echo "Tests failed, retry attempt number $n"
+            fi
             sleep 10
           done
-
+          exit $ret_value
