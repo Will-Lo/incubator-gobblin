@@ -184,7 +184,7 @@ public class DagManagerTest {
     //Run the thread once. Ensure the first job is running
     this._dagManagerThread.run();
     Assert.assertEquals(this.dags.size(), 1);
-    Assert.assertTrue(this.dags.containsKey(dagId));
+    Assert.assertFalse(this.dags.containsKey(dagId));
     Assert.assertEquals(this.jobToDag.size(), 1);
     Assert.assertTrue(this.jobToDag.containsKey(dag.getStartNodes().get(0)));
     Assert.assertEquals(this.dagToJobs.get(dagId).size(), 1);
