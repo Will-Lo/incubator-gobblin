@@ -155,7 +155,7 @@ jobs:
             ret_value=$?
             [ $ret_value -eq 0 ] && break
             n=$((n+1))
-            if [[ $n -le 3 ]] then;
+            if [[ $n -le 3 ]]; then
               echo "Tests failed, retry attempt number $n"
             fi
             sleep 10
