@@ -151,13 +151,12 @@ jobs:
           n=0
           until [ "$n" -ge 3 ]
           do
-            ./gradlew -PskipTestGroup=disabledOnCI $GOBBLIN_GRADLE_OPTS $TASKS -Dorg.gradle.parallel=false
-            ret_value=$?
-            [ $ret_value -eq 0 ] && break
+            ./gradlew -PskipTestGroup=disabledOnCI $GOBBLIN_GRADLE_OPTS $TASKS -Dorg.gradle.parallel=false && break
             n=$((n+1))
-            if [[ $n -le 3 ]]; then
+            if [[ $n -lt 3 ]]; then
               echo "Tests failed, retry attempt number $n"
+            else
+              exit 1
             fi
             sleep 10
           done
-          exit $ret_value
