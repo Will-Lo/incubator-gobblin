@@ -39,7 +39,6 @@ import org.apache.gobblin.source.extractor.extract.LongWatermark;
 import org.apache.gobblin.writer.LastWatermarkTracker;
 import org.apache.gobblin.writer.WatermarkTracker;
 
-@Test(enabled=false, groups = { "disabledOnCI" })
 public class KafkaProduceRateTrackerTest {
   private static final LocalDate HOLIDAY_DATE = new LocalDate(2019, 12, 25);
   private static final LocalDate NON_HOLIDAY_DATE = new LocalDate(2020, 01, 05);
