@@ -191,6 +191,7 @@ public class HiveCopyEntityHelper {
   private final Optional<Predicate<HivePartitionFileSet>> fastPartitionSkip;
   private final Optional<Predicate<HiveCopyEntityHelper>> fastTableSkip;
   private final DeregisterFileDeleteMethod deleteMethod;
+  private final HiveTargetDirectoryClient targetDirectoryClient;
 
   private final Optional<CommitStep> tableRegistrationStep;
   private Map<List<String>, Partition> sourcePartitions;
@@ -297,6 +298,7 @@ public class HiveCopyEntityHelper {
         this.hivePartitionExtendedFilter = this.initializeExtendedPartitionFilter();
         this.fastPartitionSkip = this.initializePartitionSkipper();
         this.fastTableSkip = this.initializeTableSkipper();
+        this.targetDirectoryClient = this.initializeHiveTargetDirectoryClient();
       } catch (ReflectiveOperationException e) {
         closer.close();
         throw new IOException(e);
@@ -374,6 +376,20 @@ public class HiveCopyEntityHelper {
     } else {
       return Optional.absent();
     }
+  }
+
+  /**
+   * Checks {@value HIVE_TARGET_DIRECTORY_CLIENT_CLASS} in configuration to initialize class that implements target destination
+   * specific tasks on creates or deletes. i.e. for cloud environments to create/delete containers
+   * Default class returns the sent path on creates, and does nothing on deletes
+   */
+  private HiveTargetDirectoryClient initializeHiveTargetDirectoryClient() {
+    String directoryClientClass = this.dataset.getProperties().containsKey(HIVE_TARGET_DIRECTORY_CLIENT_CLASS) ?
+        this.dataset.getProperties().getProperty(HIVE_TARGET_DIRECTORY_CLIENT_CLASS) :
+        HiveTargetDirectoryClient.class.getName();
+    return GobblinConstructorUtils.invokeConstructor(HiveTargetDirectoryClient.class,
+        new ClassAliasResolver(HiveTargetDirectoryClient.class).resolve(directoryClientClass),
+        this.dataset.getProperties());
   }
 
   /**
@@ -572,6 +588,13 @@ public class HiveCopyEntityHelper {
     PartitionDeregisterStep deregister =
         new PartitionDeregisterStep(table.getTTable(), partition.getTPartition(), this.targetMetastoreURI, this.hiveRegProps);
     copyEntities.add(new PostPublishStep(fileSet, Maps.<String, String> newHashMap(), deregister, stepPriority++));
+    try {
+      this.targetDirectoryClient.deletePath(table.getDataLocation());
+    } catch (IOException e) {
+      // log error, but continue on if shard cannot be deleted
+      log.debug("Deleting path at {} failed due to {} ", table.getDataLocation(), e.getMessage());
+    }
+
     return stepPriority;
   }
 
@@ -610,6 +633,8 @@ public class HiveCopyEntityHelper {
     TableDeregisterStep deregister =
         new TableDeregisterStep(table.getTTable(), this.getTargetMetastoreURI(), this.getHiveRegProps());
     copyEntities.add(new PostPublishStep(fileSet, Maps.<String, String> newHashMap(), deregister, stepPriority++));
+    targetDirectoryClient.deletePath(table.getDataLocation());
+
     return stepPriority;
   }
 
@@ -826,7 +851,6 @@ public class HiveCopyEntityHelper {
 
   /**
    * Compute the target location for a Hive location.
-   * @param sourceFs Source {@link FileSystem}.
    * @param path source {@link Path} in Hive location.
    * @param partition partition these paths correspond to.
    * @return transformed location in the target.
@@ -834,13 +858,8 @@ public class HiveCopyEntityHelper {
    */
   Path getTargetLocation(FileSystem targetFs, Path path, Optional<Partition> partition)
       throws IOException {
-    String directoryClientClass = this.dataset.getProperties().containsKey(HIVE_TARGET_DIRECTORY_CLIENT_CLASS) ?
-        this.dataset.getProperties().getProperty(HIVE_TARGET_DIRECTORY_CLIENT_CLASS) :
-        HiveTargetDirectoryClient.class.getName();
-    HiveTargetDirectoryClient targetClient = GobblinConstructorUtils.invokeConstructor(HiveTargetDirectoryClient.class,
-        new ClassAliasResolver(HiveTargetDirectoryClient.class).resolve(directoryClientClass),
-        this.dataset.getProperties());
-    return targetClient.getOrCreateTargetPath(getTargetPathHelper().getTargetPath(path, targetFs, partition, false));
+    return this.targetDirectoryClient.getOrCreateTargetPath(getTargetPathHelper()
+        .getTargetPath(path, targetFs, partition, false));
   }
 
   protected static Path replacedPrefix(Path sourcePath, Path prefixTobeReplaced, Path prefixReplacement) {

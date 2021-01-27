@@ -6,8 +6,8 @@ import org.apache.hadoop.fs.Path;
 
 
 /**
- * Determines a target path for {@link HiveCopyEntityHelper}, and can be extended to ensure that target paths exist before copying files
- * An example would be to create target directories on cloud environments before initiating the copy
+ * Determines and manages target paths for {@link HiveCopyEntityHelper}
+ * An example implementation would create target directories on cloud environments before initiating the copy
  * By default, returns the input path (do nothing)
  */
 public class HiveTargetDirectoryClient {
@@ -22,6 +22,15 @@ public class HiveTargetDirectoryClient {
    */
   public Path getOrCreateTargetPath(Path path) throws IOException {
     return path;
+  }
+
+  /**
+   * Deletes references to the path from the directory client
+   * @param path path on target directory
+   * @throws IOException if deleting the path fails
+   */
+  public void deletePath(Path path) throws IOException {
+    return;
   }
 }
 
