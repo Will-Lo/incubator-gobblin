@@ -51,7 +51,9 @@ import org.apache.gobblin.configuration.State;
 import org.apache.gobblin.data.management.copy.CopyConfiguration;
 import org.apache.gobblin.data.management.copy.CopyEntity;
 import org.apache.gobblin.data.management.copy.CopyableFile;
+import org.apache.gobblin.data.management.copy.NoopShardDirectoryClient;
 import org.apache.gobblin.data.management.copy.OwnerAndPermission;
+import org.apache.gobblin.data.management.copy.ShardDirectoryClient;
 import org.apache.gobblin.data.management.copy.entities.PostPublishStep;
 import org.apache.gobblin.data.management.copy.hive.avro.HiveAvroCopyEntityHelper;
 import org.apache.gobblin.data.management.partition.FileSet;
@@ -86,8 +88,6 @@ import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InvalidInputException;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.TException;
-
-import static org.apache.gobblin.data.management.copy.hive.HiveTargetPathHelper.*;
 
 
 /**
@@ -149,8 +149,6 @@ public class HiveCopyEntityHelper {
   /**
    * Config to specify class for ensuring that the target directory exists, generally for cloud providers
    * */
-  public static final String SHARD_CLIENT_CLASS
-      = HiveDatasetFinder.HIVE_DATASET_PREFIX + ".copy.target.shardClientClass";
 
   static final Gson gson = new Gson();
 
@@ -318,8 +316,8 @@ public class HiveCopyEntityHelper {
           this.existingTargetTable = Optional.absent();
         }
 
-        String directoryClientClass = this.dataset.getProperties().containsKey(SHARD_CLIENT_CLASS) ?
-            this.dataset.getProperties().getProperty(SHARD_CLIENT_CLASS) :
+        String directoryClientClass = this.dataset.getProperties().containsKey(ConfigurationKeys.SHARD_CLIENT_CLASS) ?
+            this.dataset.getProperties().getProperty(ConfigurationKeys.SHARD_CLIENT_CLASS) :
             NoopShardDirectoryClient.class.getName();
         ShardDirectoryClient targetClient = GobblinConstructorUtils.invokeConstructor(ShardDirectoryClient.class,
             new ClassAliasResolver(ShardDirectoryClient.class).resolve(directoryClientClass),

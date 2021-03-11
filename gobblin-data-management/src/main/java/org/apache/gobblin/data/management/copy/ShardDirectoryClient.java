@@ -14,22 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.gobblin.data.management.copy.hive;
+
+package org.apache.gobblin.data.management.copy;
 
 import java.io.IOException;
 import java.util.Properties;
-import org.apache.gobblin.typedconfig.Alias;
 import org.apache.hadoop.fs.Path;
 
 
-@Alias("noop")
-public class NoopShardDirectoryClient implements ShardDirectoryClient {
+/**
+ * Ensure that target paths which are sharded will exist before copying files
+ * An example would be to create target directories on cloud environments before initiating the copy
+ * By default, returns the input path (do nothing)
+ */
+public interface ShardDirectoryClient {
 
-  public NoopShardDirectoryClient(Properties properties){}
+  /**
+   * Creates a target directory path if it does not exist, otherwise fetch its path
+   * @param path initial target path
+   * @return the path after creating the target directory
+   * @throws IOException if creating or getting the path fails
+   */
+   Path getOrCreateTargetPath(final Path path) throws IOException;
 
-  public Path getOrCreateTargetPath(Path path) throws IOException {
-    return path;
-  }
-
-  public void close() {}
+   void close() throws IOException;
 }
+

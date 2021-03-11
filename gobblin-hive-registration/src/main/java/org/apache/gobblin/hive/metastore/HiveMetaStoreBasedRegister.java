@@ -276,7 +276,6 @@ public class HiveMetaStoreBasedRegister extends HiveRegister {
         try (Timer.Context context = this.metricContext.timer(CREATE_HIVE_TABLE).time()) {
           client.createTable(getTableWithCreateTimeNow(table));
           log.info(String.format("Created Hive table %s in db %s", tableName, dbName));
-          log.info(String.format("Created Hive table %s in db %s", tableName, dbName));
           return true;
         } catch (AlreadyExistsException e) {
           log.debug("Table {}.{} already existed", table.getDbName(), table.getTableName());

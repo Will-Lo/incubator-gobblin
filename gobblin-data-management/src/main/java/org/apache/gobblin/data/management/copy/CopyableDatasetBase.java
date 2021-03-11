@@ -18,6 +18,7 @@
 package org.apache.gobblin.data.management.copy;
 
 import org.apache.gobblin.dataset.Dataset;
+import org.apache.hadoop.fs.Path;
 
 
 /**
@@ -25,4 +26,5 @@ import org.apache.gobblin.dataset.Dataset;
  * Concrete classes must implement a subinterface of this interface ({@link CopyableDataset} or {@link IterableCopyableDataset}).
  */
 public interface CopyableDatasetBase extends Dataset {
+  default String getDatasetPath() { return ""; }
 }

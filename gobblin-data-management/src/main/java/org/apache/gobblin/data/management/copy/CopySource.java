@@ -368,8 +368,8 @@ public class CopySource extends AbstractSource<String, FileAwareInputStream> {
           }
 
           // Ensure that the writer temporary directories are contained within the dataset shard
-          if ((this.copyableDataset instanceof HiveDataset) && (state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR,false))) {
-            String datasetPath = ((HiveDataset) this.copyableDataset).datasetPath;
+          if (state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR,false)) {
+            String datasetPath = this.copyableDataset.getDatasetPath();
             String writerStagingSuffix = state.contains(ConfigurationKeys.WRITER_STAGING_DIR) ?
                 state.getProp(ConfigurationKeys.WRITER_STAGING_DIR) : ConfigurationKeys.STAGING_DIR_DEFAULT_SUFFIX;
             String writerOutputSuffix = state.contains(ConfigurationKeys.WRITER_OUTPUT_DIR) ?

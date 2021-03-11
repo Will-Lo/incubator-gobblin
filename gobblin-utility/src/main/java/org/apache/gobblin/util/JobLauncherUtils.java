@@ -197,16 +197,6 @@ public class JobLauncherUtils {
           throw new IOException("Clean up output directory " + outputPath.toUri().getPath() + " failed");
         }
       }
-
-      if (state.contains(ConfigurationKeys.ROW_LEVEL_ERR_FILE)) {
-        Path errPath = new Path(state.getProp(ConfigurationKeys.ROW_LEVEL_ERR_FILE));
-        if (fs.exists(errPath)) {
-          logger.info("Cleaning up error directory " + errPath.toUri().getPath());
-          if (!fs.delete(errPath, true)) {
-            throw new IOException("Clean up output directory " + outputPath.toUri().getPath() + " failed");
-          }
-        }
-      }
     }
   }
 
@@ -246,7 +236,7 @@ public class JobLauncherUtils {
         parallelRunner.deletePath(outputPath, true);
       }
 
-      if (state.contains(ConfigurationKeys.ROW_LEVEL_ERR_FILE)) {
+      if (state.contains(ConfigurationKeys.ROW_LEVEL_ERR_FILE) && state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR, false)) {
         Path errPath = new Path(state.getProp(ConfigurationKeys.ROW_LEVEL_ERR_FILE));
         if (fs.exists(errPath)) {
           logger.info("Cleaning up error directory " + errPath.toUri().getPath());
