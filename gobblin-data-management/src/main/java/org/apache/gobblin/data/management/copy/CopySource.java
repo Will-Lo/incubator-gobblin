@@ -370,19 +370,7 @@ public class CopySource extends AbstractSource<String, FileAwareInputStream> {
           // Ensure that the writer temporary directories are contained within the dataset shard
           if (state.getPropAsBoolean(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR,false)) {
             String datasetPath = this.copyableDataset.getDatasetPath();
-            String writerStagingSuffix = state.contains(ConfigurationKeys.WRITER_STAGING_DIR) ?
-                state.getProp(ConfigurationKeys.WRITER_STAGING_DIR) : ConfigurationKeys.STAGING_DIR_DEFAULT_SUFFIX;
-            String writerOutputSuffix = state.contains(ConfigurationKeys.WRITER_OUTPUT_DIR) ?
-                state.getProp(ConfigurationKeys.WRITER_OUTPUT_DIR) : ConfigurationKeys.OUTPUT_DIR_DEFAULT_SUFFIX;
-            String rowErrFileSuffix = state.contains(ConfigurationKeys.ROW_LEVEL_ERR_FILE) ?
-                state.getProp(ConfigurationKeys.ROW_LEVEL_ERR_FILE) : ConfigurationKeys.ROW_LEVEL_ERR_FILE_DEFAULT_SUFFIX;
-
-            workUnit.setProp(ConfigurationKeys.WRITER_STAGING_DIR, datasetPath + writerStagingSuffix + "/" + state
-                .getProp(ConfigurationKeys.JOB_NAME_KEY) + "/" + state.getProp(ConfigurationKeys.JOB_ID_KEY));
-
-            workUnit.setProp(ConfigurationKeys.WRITER_OUTPUT_DIR, datasetPath + writerOutputSuffix + "/" +
-                state.getProp(ConfigurationKeys.JOB_NAME_KEY) + "/" + state.getProp(ConfigurationKeys.JOB_ID_KEY));
-            workUnit.setProp(ConfigurationKeys.ROW_LEVEL_ERR_FILE, datasetPath + rowErrFileSuffix);
+            workUnit.setProp(ConfigurationKeys.DATASET_DESTINATION_PATH, datasetPath);
           }
 
           serializeCopyEntity(workUnit, copyEntity);

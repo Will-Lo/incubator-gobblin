@@ -1066,8 +1066,8 @@ public class ConfigurationKeys {
    * Configuration for sharded directory files
    */
   public static final String USE_DATASET_LOCAL_WORK_DIR = "gobblin.useDatasetLocalWorkDir";
-  public static final String SHARD_CLIENT_CLASS = "gobblin.copy.target.shardClientClass";
-  public static final String DATASET_SHARD_PATH = "gobblin.dataset.shard.path";
+  public static final String DESTINATION_DIRECTORY_HANDLER_CLASS = "gobblin.destination.directoryHandlerClass";
+  public static final String DATASET_DESTINATION_PATH = "gobblin.dataset.destination.path";
   public static final String STAGING_DIR_DEFAULT_SUFFIX = "/taskStaging";
   public static final String OUTPUT_DIR_DEFAULT_SUFFIX = "/taskOutput";
   public static final String ROW_LEVEL_ERR_FILE_DEFAULT_SUFFIX = "/err";

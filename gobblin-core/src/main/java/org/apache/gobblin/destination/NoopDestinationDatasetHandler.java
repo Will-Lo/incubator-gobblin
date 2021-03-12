@@ -15,28 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.gobblin.data.management.copy;
+package org.apache.gobblin.destination;
 
 import java.io.IOException;
-import java.util.Properties;
-import org.apache.hadoop.fs.Path;
+import org.apache.gobblin.annotation.Alias;
+import org.apache.gobblin.source.workunit.WorkUnitStream;
 
+@Alias("noop")
+public class NoopDestinationDatasetHandler implements DestinationDatasetHandler {
 
-/**
- * Ensure that target paths which are sharded will exist before copying files
- * An example would be to create target directories on cloud environments before initiating the copy
- * By default, returns the input path (do nothing)
- */
-public interface ShardDirectoryClient {
+  @Override
+  public void handle(WorkUnitStream workUnitStream) {}
 
-  /**
-   * Creates a target directory path if it does not exist, otherwise fetch its path
-   * @param path initial target path
-   * @return the path after creating the target directory
-   * @throws IOException if creating or getting the path fails
-   */
-   Path getOrCreateTargetPath(final Path path) throws IOException;
-
-   void close() throws IOException;
+  @Override
+  public void close() throws IOException {}
 }
-

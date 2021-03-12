@@ -14,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.gobblin.data.management.copy;
 
+package org.apache.gobblin.destination;
+
+import java.io.Closeable;
 import java.io.IOException;
-import java.util.Properties;
-import org.apache.gobblin.typedconfig.Alias;
-import org.apache.hadoop.fs.Path;
+import org.apache.gobblin.source.workunit.WorkUnitStream;
 
+/**
+ * Performs work related to initializing the target environment before the files are written and published
+ */
+public interface DestinationDatasetHandler extends Closeable {
 
-@Alias("noop")
-public class NoopShardDirectoryClient implements ShardDirectoryClient {
+  /**
+   * Adds required properties to work units for determining writer staging and output paths
+   * @param workUnitStream
+   */
+  void handle(WorkUnitStream workUnitStream);
 
-  public NoopShardDirectoryClient(Properties properties){}
-
-  public Path getOrCreateTargetPath(Path path) throws IOException {
-    return path;
-  }
-
-  public void close() throws IOException {}
+  void close() throws IOException;
 }

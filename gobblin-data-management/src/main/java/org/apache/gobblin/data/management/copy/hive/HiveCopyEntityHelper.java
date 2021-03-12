@@ -51,9 +51,7 @@ import org.apache.gobblin.configuration.State;
 import org.apache.gobblin.data.management.copy.CopyConfiguration;
 import org.apache.gobblin.data.management.copy.CopyEntity;
 import org.apache.gobblin.data.management.copy.CopyableFile;
-import org.apache.gobblin.data.management.copy.NoopShardDirectoryClient;
 import org.apache.gobblin.data.management.copy.OwnerAndPermission;
-import org.apache.gobblin.data.management.copy.ShardDirectoryClient;
 import org.apache.gobblin.data.management.copy.entities.PostPublishStep;
 import org.apache.gobblin.data.management.copy.hive.avro.HiveAvroCopyEntityHelper;
 import org.apache.gobblin.data.management.partition.FileSet;
@@ -316,21 +314,12 @@ public class HiveCopyEntityHelper {
           this.existingTargetTable = Optional.absent();
         }
 
-        String directoryClientClass = this.dataset.getProperties().containsKey(ConfigurationKeys.SHARD_CLIENT_CLASS) ?
-            this.dataset.getProperties().getProperty(ConfigurationKeys.SHARD_CLIENT_CLASS) :
-            NoopShardDirectoryClient.class.getName();
-        ShardDirectoryClient targetClient = GobblinConstructorUtils.invokeConstructor(ShardDirectoryClient.class,
-            new ClassAliasResolver(ShardDirectoryClient.class).resolve(directoryClientClass),
-            this.dataset.getProperties());
-        Path targetPath = targetClient.getOrCreateTargetPath(getTargetLocation(this.targetFs, this.dataset.table.getDataLocation(),
-            Optional.<Partition>absent()));
-        targetClient.close();
+        Path targetPath = getTargetLocation(this.targetFs, this.dataset.table.getDataLocation(), Optional.<Partition>absent());
         if (Boolean.parseBoolean(this.dataset.getProperties().getProperty(ConfigurationKeys.USE_DATASET_LOCAL_WORK_DIR, "false"))) {
           this.dataset.datasetPath = targetPath.toUri().getRawPath();
         }
 
         this.targetTable = getTargetTable(this.dataset.table, targetPath);
-
         HiveSpec tableHiveSpec = new SimpleHiveSpec.Builder<>(targetPath)
             .withTable(HiveMetaStoreUtils.getHiveTable(this.targetTable.getTTable())).build();
 

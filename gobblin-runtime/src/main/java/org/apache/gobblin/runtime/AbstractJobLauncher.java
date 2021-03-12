@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.gobblin.destination.DestinationDatasetHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -437,6 +438,9 @@ public abstract class AbstractJobLauncher implements JobLauncher {
           this.jobContext.getJobState().setProp(NUM_WORKUNITS, 0);
           return;
         }
+
+        // Perform work needed before writing is done
+        closer.register(DestinationDatasetHandlerFactory.newInstance(jobState)).handle(workUnitStream);
 
         //Initialize writer and converter(s)
         closer.register(WriterInitializerFactory.newInstace(jobState, workUnitStream)).initialize();
