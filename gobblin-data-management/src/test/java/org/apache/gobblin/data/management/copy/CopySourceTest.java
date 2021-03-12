@@ -17,6 +17,7 @@
 
 package org.apache.gobblin.data.management.copy;
 import com.google.common.io.Files;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -199,7 +200,9 @@ public class CopySourceTest {
     SourceState state = new SourceState();
     Properties copyProperties = new Properties();
     copyProperties.put(ConfigurationKeys.DATA_PUBLISHER_FINAL_DIR, "/target");
-    String tempDirRoot = Files.createTempDir().getPath();
+    File tempDir = Files.createTempDir();
+    String tempDirRoot = tempDir.getPath();
+    tempDir.deleteOnExit();
 
     state.setProp(ConfigurationKeys.SOURCE_FILEBASED_FS_URI, "file:///");
     state.setProp(ConfigurationKeys.WRITER_FILE_SYSTEM_URI, "file:///");
