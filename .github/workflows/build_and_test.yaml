@@ -31,7 +31,7 @@ on:
 jobs:
   build:
     name: Build repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -54,7 +54,7 @@ jobs:
           ./gradlew --no-daemon clean build -x test -x javadoc -x findbugsMain -x findbugsTest -x checkstyleMain -x checkstyleJmh -x checkstyleTest -Dorg.gradle.parallel=true
 
   test_coverage:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     name: Generate test coverage
     needs: build
     steps:
@@ -75,11 +75,11 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Generate code coverage
         run: |
-          ./gradlew -PskipTestGroup=disabledOnCI -Dorg.gradle.parallel=false -DjacocoBuild=1 $GOBBLIN_GRADLE_OPTS jacocoTestCoverage
+          ./gradlew -PskipTestGroup=disabledOnCI -Dorg.gradle.parallel=false -DjacocoBuild=1 $GOBBLIN_GRADLE_OPTS jacocoTestCoverage -XX:MaxJavaStackTraceDepth=
 
   static_checks:
     name: Run static checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: build
     steps:
       - name: Check out the repo
