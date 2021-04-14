@@ -75,7 +75,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Generate code coverage
         run: |
-          ./gradlew -PskipTestGroup=disabledOnCI -Dorg.gradle.parallel=false -DjacocoBuild=1 $GOBBLIN_GRADLE_OPTS jacocoTestCoverage -XX:MaxJavaStackTraceDepth=
+          ./gradlew -PskipTestGroup=disabledOnCI -Dorg.gradle.parallel=false -DjacocoBuild=1 $GOBBLIN_GRADLE_OPTS jacocoTestCoverage
 
   static_checks:
     name: Run static checks
