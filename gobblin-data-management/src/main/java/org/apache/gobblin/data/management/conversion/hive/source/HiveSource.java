@@ -406,6 +406,8 @@ public class HiveSource implements Source {
       throws UpdateNotFoundException {
     long updateTime = this.updateProvider.getUpdateTime(table);
     long createTime = getCreateTime(table);
+    System.out.println(updateTime);
+    System.out.println(lowWatermark);
     return shouldCreateWorkunit(createTime, updateTime, lowWatermark);
   }
 

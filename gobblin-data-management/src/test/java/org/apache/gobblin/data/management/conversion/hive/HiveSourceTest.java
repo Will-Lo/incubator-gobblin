@@ -134,7 +134,7 @@ public class HiveSourceTest {
     Table table1 = this.hiveMetastoreTestUtils.getLocalMetastoreClient().getTable(dbName, TEST_TABLE_1);
 
     previousWorkUnitStates.add(ConversionHiveTestUtils.createWus(dbName, TEST_TABLE_1,
-        TimeUnit.MILLISECONDS.convert(table1.getCreateTime()+1000, TimeUnit.SECONDS)));
+        TimeUnit.MILLISECONDS.convert(table1.getCreateTime(), TimeUnit.SECONDS)));
 
     SourceState testState = new SourceState(getTestState(dbName), previousWorkUnitStates);
     testState.setProp(HiveSource.HIVE_SOURCE_WATERMARKER_FACTORY_CLASS_KEY, TableLevelWatermarker.Factory.class.getName());
