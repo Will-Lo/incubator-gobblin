@@ -64,13 +64,12 @@ public class HiveSourceTest {
 
   @Test
   public void testGetWorkUnitsForTable() throws Exception {
-    String dbName = HiveSourceTest.class.getName() + "testdb2";
+    String dbName = HiveSourceTest.class.getSimpleName().toLowerCase() + "testdb2";
     String tableSdLoc = new File(this.tmpDir, TEST_TABLE_2).getAbsolutePath();
 
-    this.hiveMetastoreTestUtils.getLocalMetastoreClient().dropDatabase(dbName, false, true, true);
+    this.hiveMetastoreTestUtils.dropDatabaseIfExists(dbName);
 
     SourceState testState = getTestState(dbName);
-
     this.hiveMetastoreTestUtils.createTestAvroTable(dbName, TEST_TABLE_2, tableSdLoc, Optional.<String> absent());
 
     List<WorkUnit> workUnits = hiveSource.getWorkunits(testState);
@@ -88,10 +87,10 @@ public class HiveSourceTest {
 
   @Test
   public void testGetWorkUnitsForPartitions() throws Exception {
-    String dbName = HiveSourceTest.class.getName() + "testdb3";
+    String dbName = HiveSourceTest.class.getSimpleName().toLowerCase() + "testdb3";
     String tableSdLoc = new File(this.tmpDir, TEST_TABLE_3).getAbsolutePath();
 
-    this.hiveMetastoreTestUtils.getLocalMetastoreClient().dropDatabase(dbName, false, true, true);
+    this.hiveMetastoreTestUtils.dropDatabaseIfExists(dbName);
 
     SourceState testState = getTestState(dbName);
 
@@ -120,11 +119,12 @@ public class HiveSourceTest {
 
   @Test
   public void testGetWorkunitsAfterWatermark() throws Exception {
-    String dbName = HiveSourceTest.class.getName() + "testdb4";
+    String dbName = HiveSourceTest.class.getSimpleName().toLowerCase() + "testdb4";
     String tableSdLoc1 = new File(this.tmpDir, TEST_TABLE_1).getAbsolutePath();
     String tableSdLoc2 = new File(this.tmpDir, TEST_TABLE_2).getAbsolutePath();
 
-    this.hiveMetastoreTestUtils.getLocalMetastoreClient().dropDatabase(dbName, false, true, true);
+    this.hiveMetastoreTestUtils.dropDatabaseIfExists(dbName);
+    this.hiveMetastoreTestUtils.createTestDb(dbName);
 
     this.hiveMetastoreTestUtils.createTestAvroTable(dbName, TEST_TABLE_1, tableSdLoc1, Optional.<String> absent());
     this.hiveMetastoreTestUtils.createTestAvroTable(dbName, TEST_TABLE_2, tableSdLoc2, Optional.<String> absent(), true);
@@ -157,7 +157,7 @@ public class HiveSourceTest {
 
     org.apache.hadoop.hive.ql.metadata.Partition partition =
         this.hiveMetastoreTestUtils.createDummyPartition(partitionCreateTime);
-    String dbName = HiveSourceTest.class.getName() + "testdb6";
+    String dbName = HiveSourceTest.class.getSimpleName().toLowerCase() + "testdb6";
     SourceState testState = getTestState(dbName);
     HiveSource source = new HiveSource();
     source.initialize(testState);
@@ -175,7 +175,7 @@ public class HiveSourceTest {
 
     org.apache.hadoop.hive.ql.metadata.Partition partition =
         this.hiveMetastoreTestUtils.createDummyPartition(partitionCreateTime);
-    String dbName = HiveSourceTest.class.getName() + "testdb7";
+    String dbName = HiveSourceTest.class.getSimpleName().toLowerCase() + "testdb7";
     SourceState testState = getTestState(dbName);
     HiveSource source = new HiveSource();
     source.initialize(testState);
@@ -195,7 +195,7 @@ public class HiveSourceTest {
 
     org.apache.hadoop.hive.ql.metadata.Partition partition = this.hiveMetastoreTestUtils.createDummyPartition(0);
     partition.getTPartition().setParameters(parameters);
-    String dbName = HiveSourceTest.class.getName() + "testdb8";
+    String dbName = HiveSourceTest.class.getSimpleName().toLowerCase() + "testdb8";
     SourceState testState = getTestState(dbName);
     HiveSource source = new HiveSource();
     source.initialize(testState);
