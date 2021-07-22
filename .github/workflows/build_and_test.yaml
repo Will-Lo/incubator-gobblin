@@ -35,7 +35,7 @@ concurrency:
 jobs:
   build:
     name: Build repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
