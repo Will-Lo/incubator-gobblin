@@ -64,7 +64,7 @@ public class HiveSourceTest {
 
   @Test
   public void testGetWorkUnitsForTable() throws Exception {
-    String dbName = "testdb2";
+    String dbName = HiveSourceTest.class.getName() + "testdb2";
     String tableSdLoc = new File(this.tmpDir, TEST_TABLE_2).getAbsolutePath();
 
     this.hiveMetastoreTestUtils.getLocalMetastoreClient().dropDatabase(dbName, false, true, true);
@@ -88,7 +88,7 @@ public class HiveSourceTest {
 
   @Test
   public void testGetWorkUnitsForPartitions() throws Exception {
-    String dbName = "testdb3";
+    String dbName = HiveSourceTest.class.getName() + "testdb3";
     String tableSdLoc = new File(this.tmpDir, TEST_TABLE_3).getAbsolutePath();
 
     this.hiveMetastoreTestUtils.getLocalMetastoreClient().dropDatabase(dbName, false, true, true);
@@ -120,7 +120,7 @@ public class HiveSourceTest {
 
   @Test
   public void testGetWorkunitsAfterWatermark() throws Exception {
-    String dbName = "testdb4";
+    String dbName = HiveSourceTest.class.getName() + "testdb4";
     String tableSdLoc1 = new File(this.tmpDir, TEST_TABLE_1).getAbsolutePath();
     String tableSdLoc2 = new File(this.tmpDir, TEST_TABLE_2).getAbsolutePath();
 
@@ -157,8 +157,8 @@ public class HiveSourceTest {
 
     org.apache.hadoop.hive.ql.metadata.Partition partition =
         this.hiveMetastoreTestUtils.createDummyPartition(partitionCreateTime);
-
-    SourceState testState = getTestState("testDb6");
+    String dbName = HiveSourceTest.class.getName() + "testdb6";
+    SourceState testState = getTestState(dbName);
     HiveSource source = new HiveSource();
     source.initialize(testState);
 
@@ -175,8 +175,8 @@ public class HiveSourceTest {
 
     org.apache.hadoop.hive.ql.metadata.Partition partition =
         this.hiveMetastoreTestUtils.createDummyPartition(partitionCreateTime);
-
-    SourceState testState = getTestState("testDb7");
+    String dbName = HiveSourceTest.class.getName() + "testdb7";
+    SourceState testState = getTestState(dbName);
     HiveSource source = new HiveSource();
     source.initialize(testState);
 
@@ -195,8 +195,8 @@ public class HiveSourceTest {
 
     org.apache.hadoop.hive.ql.metadata.Partition partition = this.hiveMetastoreTestUtils.createDummyPartition(0);
     partition.getTPartition().setParameters(parameters);
-
-    SourceState testState = getTestState("testDb6");
+    String dbName = HiveSourceTest.class.getName() + "testdb8";
+    SourceState testState = getTestState(dbName);
     HiveSource source = new HiveSource();
     source.initialize(testState);
 
