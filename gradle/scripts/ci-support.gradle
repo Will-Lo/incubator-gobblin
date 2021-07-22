@@ -16,8 +16,7 @@
  */
 
 
-def corePaths = ["gobblin-binary-management", "gobblin-compaction", "gobblin-core", "gobblin-data-management",
-                 "gobblin-hive-registration", "gobblin-runtime", "gobblin-yarn", "gobblin-metrics-libs", "gobblin-runtime-hadoop"]
+def corePaths = [ "gobblin-data-management"]
 def servicePaths = ["gobblin-api", "gobblin-rest-service", "gobblin-restli", "gobblin-service"]
 def modulePaths = ["gobblin-modules"]
 
