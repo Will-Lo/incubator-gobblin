@@ -85,7 +85,6 @@ public class IcebergMetadataWriterTest extends HiveMetastoreTest {
   private String dbName = "hivedb";
 
   private GobblinMCEWriter gobblinMCEWriter;
-  private GobblinMCEWriter gobblinMCEWriterWithAcceptClusters;
 
   GobblinMetadataChangeEvent gmce;
   static File tmpDir;
@@ -97,7 +96,6 @@ public class IcebergMetadataWriterTest extends HiveMetastoreTest {
   @AfterClass
   public void clean() throws Exception {
     gobblinMCEWriter.close();
-    gobblinMCEWriterWithAcceptClusters.close();
     FileUtils.forceDeleteOnExit(tmpDir);
   }
   @BeforeClass
@@ -144,8 +142,6 @@ public class IcebergMetadataWriterTest extends HiveMetastoreTest {
         TestHiveRegistrationPolicyForIceberg.class.getName());
     state.setProp("use.data.path.as.table.location", true);
     gobblinMCEWriter = new GobblinMCEWriter(new GobblinMCEWriterBuilder(), state);
-    state.setProp(GobblinMCEWriter.ACCEPTED_CLUSTER_NAMES, "randomCluster");
-    gobblinMCEWriterWithAcceptClusters = new GobblinMCEWriter(new GobblinMCEWriterBuilder(), state);
     ((IcebergMetadataWriter) gobblinMCEWriter.getMetadataWriters().iterator().next()).setCatalog(
         HiveMetastoreTest.catalog);
     _avroPartitionSchema =
@@ -154,12 +150,6 @@ public class IcebergMetadataWriterTest extends HiveMetastoreTest {
 
   @Test ( priority = 0 )
   public void testWriteAddFileGMCE() throws IOException {
-    gobblinMCEWriterWithAcceptClusters.writeEnvelope(new RecordEnvelope<>(gmce,
-        new KafkaStreamingExtractor.KafkaWatermark(
-            new KafkaPartition.Builder().withTopicName("GobblinMetadataChangeEvent_test").withId(1).build(),
-            new LongWatermark(10L))));
-    //Test when accept clusters does not contain the gmce cluster, we will skip
-    Assert.assertEquals(catalog.listTables(Namespace.of(dbName)).size(), 0);
     gobblinMCEWriter.writeEnvelope(new RecordEnvelope<>(gmce,
         new KafkaStreamingExtractor.KafkaWatermark(
             new KafkaPartition.Builder().withTopicName("GobblinMetadataChangeEvent_test").withId(1).build(),
