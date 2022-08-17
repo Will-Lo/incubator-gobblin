@@ -21,7 +21,5 @@ import com.google.common.util.concurrent.Service;
 
 
 public interface FlowGraphMonitor extends Service {
-
   void setActive(boolean value);
-
 }

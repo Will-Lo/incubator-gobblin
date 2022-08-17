@@ -192,8 +192,9 @@ public abstract class BaseFlowGraphListener {
     // flowGraphDir/nodeName/nodeName/edgeName.properties (if it is an edge file)
 
     Path filePath = new Path(file);
+    log.info(file);
     String fileExtension = Files.getFileExtension(filePath.getName());
-    if (filePath.depth() != depth || !checkFileLevelRelativeToRoot(filePath, depth)
+    if (!checkFileLevelRelativeToRoot(filePath, depth)
         || !(this.javaPropsExtensions.contains(fileExtension) || this.hoconFileExtensions.contains(fileExtension))) {
       log.warn("Changed file does not conform to directory structure and file name format, skipping: "
           + filePath);
@@ -208,7 +209,7 @@ public abstract class BaseFlowGraphListener {
    * @param depth expected depth of the file
    * @return true if the file conforms to the expected hierarchy
    */
-  private boolean checkFileLevelRelativeToRoot(Path filePath, int depth) {
+  protected boolean checkFileLevelRelativeToRoot(Path filePath, int depth) {
     if (filePath == null) {
       return false;
     }
