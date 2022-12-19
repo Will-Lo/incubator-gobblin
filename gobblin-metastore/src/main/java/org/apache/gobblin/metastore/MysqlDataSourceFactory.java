@@ -19,7 +19,7 @@ package org.apache.gobblin.metastore;
 
 import java.io.IOException;
 
-import javax.sql.DataSource;
+import org.apache.commons.dbcp.BasicDataSource;
 
 import com.typesafe.config.Config;
 
@@ -35,25 +35,24 @@ import org.apache.gobblin.broker.iface.SharedResourcesBroker;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * A {@link SharedResourceFactory} for creating {@link DataSource}s.
+ * A {@link SharedResourceFactory} for creating {@link BasicDataSource}s.
  *
- * The factory creates a {@link DataSource} with the config.
+ * The factory creates a {@link BasicDataSource} with the config.
  */
 @Slf4j
 public class MysqlDataSourceFactory<S extends ScopeType<S>>
-    implements SharedResourceFactory<DataSource, MysqlDataSourceKey, S> {
+    implements SharedResourceFactory<BasicDataSource, MysqlDataSourceKey, S> {
 
-  // WARNING: now a misnomer, but retained for legacy compatibility, despite move from `o.a.commons.dbcp.BasicDataSource` to `HikariCP`
   public static final String FACTORY_NAME = "basicDataSource";
 
   /**
-   * Get a {@link DataSource} based on the config
+   * Get a {@link BasicDataSource} based on the config
    * @param config configuration
    * @param broker broker
-   * @return a {@link DataSource}
+   * @return a {@link BasicDataSource}
    * @throws IOException
    */
-  public static <S extends ScopeType<S>> DataSource get(Config config,
+  public static <S extends ScopeType<S>> BasicDataSource get(Config config,
       SharedResourcesBroker<S> broker) throws IOException {
     try {
       return broker.getSharedResource(new MysqlDataSourceFactory<S>(),
@@ -69,12 +68,12 @@ public class MysqlDataSourceFactory<S extends ScopeType<S>>
   }
 
   @Override
-  public SharedResourceFactoryResponse<DataSource> createResource(SharedResourcesBroker<S> broker,
+  public SharedResourceFactoryResponse<BasicDataSource> createResource(SharedResourcesBroker<S> broker,
     ScopedConfigView<S, MysqlDataSourceKey> config) throws NotConfiguredException {
     MysqlDataSourceKey key = config.getKey();
     Config configuration = key.getConfig();
 
-    DataSource dataSource = MysqlStateStore.newDataSource(configuration);
+    BasicDataSource dataSource = MysqlStateStore.newDataSource(configuration);
 
     return new ResourceInstance<>(dataSource);
   }

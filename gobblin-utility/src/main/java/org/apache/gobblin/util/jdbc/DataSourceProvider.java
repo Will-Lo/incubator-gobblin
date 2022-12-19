@@ -26,10 +26,11 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.dbcp.BasicDataSource;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-import com.zaxxer.hikari.HikariDataSource;
 
 import org.apache.gobblin.password.PasswordManager;
 
@@ -47,40 +48,36 @@ public class DataSourceProvider implements Provider<DataSource> {
   public static final String USERNAME = GOBBLIN_UTIL_JDBC_PREFIX + "username";
   public static final String PASSWORD = GOBBLIN_UTIL_JDBC_PREFIX + "password";
   public static final String SKIP_VALIDATION_QUERY = GOBBLIN_UTIL_JDBC_PREFIX + "skip.validation.query";
+  public static final String MAX_IDLE_CONNS = GOBBLIN_UTIL_JDBC_PREFIX + "max.idle.connections";
   public static final String MAX_ACTIVE_CONNS = GOBBLIN_UTIL_JDBC_PREFIX + "max.active.connections";
   public static final String DEFAULT_CONN_DRIVER = "com.mysql.jdbc.Driver";
 
-  protected final HikariDataSource dataSource;
+  protected final BasicDataSource basicDataSource;
 
   @Inject
   public DataSourceProvider(@Named("dataSourceProperties") Properties properties) {
-    this.dataSource = new HikariDataSource();
-    this.dataSource.setDriverClassName(properties.getProperty(CONN_DRIVER, DEFAULT_CONN_DRIVER));
+    this.basicDataSource = new BasicDataSource();
+    this.basicDataSource.setDriverClassName(properties.getProperty(CONN_DRIVER, DEFAULT_CONN_DRIVER));
     // the validation query should work beyond mysql; still, to bypass for any reason, heed directive
     if (!Boolean.parseBoolean(properties.getProperty(SKIP_VALIDATION_QUERY, "false"))) {
       // MySQL server can timeout a connection so need to validate connections before use
       final String validationQuery = MysqlDataSourceUtils.QUERY_CONNECTION_IS_VALID_AND_NOT_READONLY;
       LOG.info("setting `DataSource` validation query: '" + validationQuery + "'");
-      // TODO: revisit following verification of successful connection pool migration:
-      //   If your driver supports JDBC4 we strongly recommend not setting this property. This is for "legacy" drivers
-      //   that do not support the JDBC4 Connection.isValid() API; see:
-      //   https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby
-      this.dataSource.setConnectionTestQuery(validationQuery);
-      this.dataSource.setIdleTimeout(Duration.ofSeconds(60).toMillis());
+      this.basicDataSource.setValidationQuery(validationQuery);
+      this.basicDataSource.setTestOnBorrow(true);
+      this.basicDataSource.setTimeBetweenEvictionRunsMillis(Duration.ofSeconds(60).toMillis());
     }
-    this.dataSource.setJdbcUrl(properties.getProperty(CONN_URL));
-    // TODO: revisit following verification of successful connection pool migration:
-    //   whereas `o.a.commons.dbcp.BasicDataSource` defaults min idle conns to 0, hikari defaults to 10.
-    //   perhaps non-zero would have desirable runtime perf, but anything >0 currently fails unit tests (even 1!);
-    //   (so experimenting with a higher number would first require adjusting tests)
-    this.dataSource.setMinimumIdle(0);
+    this.basicDataSource.setUrl(properties.getProperty(CONN_URL));
     if (properties.containsKey(USERNAME) && properties.containsKey(PASSWORD)) {
-      this.dataSource.setUsername(properties.getProperty(USERNAME));
-      this.dataSource
+      this.basicDataSource.setUsername(properties.getProperty(USERNAME));
+      this.basicDataSource
           .setPassword(PasswordManager.getInstance(properties).readPassword(properties.getProperty(PASSWORD)));
     }
+    if (properties.containsKey(MAX_IDLE_CONNS)) {
+      this.basicDataSource.setMaxIdle(Integer.parseInt(properties.getProperty(MAX_IDLE_CONNS)));
+    }
     if (properties.containsKey(MAX_ACTIVE_CONNS)) {
-      this.dataSource.setMaximumPoolSize(Integer.parseInt(properties.getProperty(MAX_ACTIVE_CONNS)));
+      this.basicDataSource.setMaxActive(Integer.parseInt(properties.getProperty(MAX_ACTIVE_CONNS)));
     }
   }
 
@@ -88,11 +85,11 @@ public class DataSourceProvider implements Provider<DataSource> {
     LOG.warn("Creating {} without setting validation query.\n Stacktrace of current thread {}",
         this.getClass().getSimpleName(),
         Arrays.toString(Thread.currentThread().getStackTrace()).replace(", ", "\n  at "));
-    this.dataSource = new HikariDataSource();
+    this.basicDataSource = new BasicDataSource();
   }
 
   @Override
   public DataSource get() {
-    return this.dataSource;
+    return this.basicDataSource;
   }
 }
