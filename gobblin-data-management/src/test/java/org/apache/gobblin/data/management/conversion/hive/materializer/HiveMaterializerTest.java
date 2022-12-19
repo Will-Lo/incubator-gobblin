@@ -54,7 +54,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
 
-@Test (groups = {"disabledOnCI"})
 public class HiveMaterializerTest {
 
   private final LocalHiveMetastoreTestUtils localHiveMetastore = LocalHiveMetastoreTestUtils.getInstance();
@@ -75,7 +74,8 @@ public class HiveMaterializerTest {
     this.jdbcConnector.executeStatements(
         String.format("CREATE EXTERNAL TABLE %s.%s (id STRING, name String) PARTITIONED BY (%s String) "
                 + "ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE",
-            this.dbName, this.sourceTableName, this.partitionColumn),
+            this.dbName, this.sourceTableName, this.partitionColumn));
+    this.jdbcConnector.executeStatements(
         String.format("ALTER TABLE %s.%s ADD PARTITION (part = 'part1') LOCATION '%s'",
             this.dbName, this.sourceTableName, this.dataFile.getAbsolutePath() + "/part1"),
         String.format("ALTER TABLE %s.%s ADD PARTITION (part = 'part2') LOCATION '%s'",
