@@ -125,7 +125,7 @@ public class LocalHiveMetastoreTestUtils {
   }
 
   public Table createTestAvroTable(String dbName, String tableName, List<String> partitionFieldNames) throws Exception {
-    return createTestAvroTable(dbName, tableName, "/tmp/" + tableName, partitionFieldNames, true);
+    return createTestAvroTable(dbName, tableName, new File(Files.createTempDir(),dbName).getAbsolutePath(), partitionFieldNames, true);
   }
 
   public Table createTestAvroTable(String dbName, String tableName, String tableSdLoc,
@@ -150,7 +150,7 @@ public class LocalHiveMetastoreTestUtils {
   }
 
   public void createTestDb(String dbName) throws Exception {
-    Database db = new Database(dbName, "Some description", "/tmp/" + dbName, new HashMap<String, String>());
+    Database db = new Database(dbName, "Some description", new File(Files.createTempDir(),dbName).getAbsolutePath(), new HashMap<String, String>());
     try {
       this.localMetastoreClient.createDatabase(db);
     } catch (AlreadyExistsException e) {
