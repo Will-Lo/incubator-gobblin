@@ -32,6 +32,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.gobblin.service.modules.orchestration.UserQuotaManager;
+import org.apache.gobblin.service.monitoring.DagActionStoreChangeMonitor;
 import org.apache.gobblin.service.monitoring.GitConfigMonitor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -100,6 +101,7 @@ import org.apache.gobblin.service.modules.scheduler.GobblinServiceJobScheduler;
 import org.apache.gobblin.service.modules.topology.TopologySpecFactory;
 import org.apache.gobblin.service.monitoring.FlowStatusGenerator;
 import org.apache.gobblin.service.monitoring.KafkaJobStatusMonitor;
+import org.apache.gobblin.service.monitoring.SpecStoreChangeMonitor;
 import org.apache.gobblin.util.ConfigUtils;
 
 
@@ -210,6 +212,12 @@ public class GobblinServiceManager implements ApplicationLauncher, StandardMetri
 
   private final MetricContext metricContext;
   private final Metrics metrics;
+
+  @Inject(optional = true)
+  protected SpecStoreChangeMonitor specStoreChangeMonitor;
+
+  @Inject(optional = true)
+  protected DagActionStoreChangeMonitor dagActionStoreChangeMonitor;
 
   @Inject
   protected GobblinServiceManager(GobblinServiceConfiguration configuration) throws Exception {
@@ -376,6 +384,11 @@ public class GobblinServiceManager implements ApplicationLauncher, StandardMetri
 
     if (configuration.isRestLIServerEnabled()) {
       this.serviceLauncher.addService(restliServer);
+    }
+
+    if (this.configuration.isWarmStandbyEnabled()) {
+      this.serviceLauncher.addService(specStoreChangeMonitor);
+      this.serviceLauncher.addService(dagActionStoreChangeMonitor);
     }
   }
 

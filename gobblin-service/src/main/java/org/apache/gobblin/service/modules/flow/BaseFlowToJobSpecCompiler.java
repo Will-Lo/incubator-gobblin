@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.gobblin.runtime.spec_catalog.FlowCatalog;
+import org.apache.gobblin.service.modules.orchestration.UserQuotaManager;
+import org.apache.gobblin.util.reflection.GobblinConstructorUtils;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +93,10 @@ public abstract class BaseFlowToJobSpecCompiler implements SpecCompiler {
   @Setter
   protected boolean active;
 
+  private boolean warmStandbyEnabled;
+
+  private Optional<UserQuotaManager> userQuotaManager;
+
   public BaseFlowToJobSpecCompiler(Config config){
     this(config,true);
   }
@@ -117,6 +124,14 @@ public abstract class BaseFlowToJobSpecCompiler implements SpecCompiler {
       this.flowCompilationFailedMeter = Optional.absent();
       this.flowCompilationTimer = Optional.absent();
       this.dataAuthorizationTimer = Optional.absent();
+    }
+
+    this.warmStandbyEnabled = ConfigUtils.getBoolean(config, ServiceConfigKeys.GOBBLIN_SERVICE_WARM_STANDBY_ENABLED_KEY, false);
+    if (this.warmStandbyEnabled) {
+      userQuotaManager = Optional.of(GobblinConstructorUtils.invokeConstructor(UserQuotaManager.class,
+          ConfigUtils.getString(config, ServiceConfigKeys.QUOTA_MANAGER_CLASS, ServiceConfigKeys.DEFAULT_QUOTA_MANAGER), config));
+    } else {
+      userQuotaManager = Optional.absent();
     }
 
     this.topologySpecMap = Maps.newConcurrentMap();
@@ -181,11 +196,22 @@ public abstract class BaseFlowToJobSpecCompiler implements SpecCompiler {
 
     // always try to compile the flow to verify if it is compilable
     Dag<JobExecutionPlan> dag = this.compileFlow(flowSpec);
+
     // If dag is null then a compilation error has occurred
     if (dag != null && !dag.isEmpty()) {
       response = dag.toString();
     }
-    // todo: should we check quota here?
+
+    if (FlowCatalog.isCompileSuccessful(response) && this.userQuotaManager.isPresent() && !flowSpec.isExplain() &&
+        (!flowSpec.getConfigAsProperties().containsKey(ConfigurationKeys.JOB_SCHEDULE_KEY) || PropertiesUtils.getPropAsBoolean(flowSpec.getConfigAsProperties(), ConfigurationKeys.FLOW_RUN_IMMEDIATELY, "false"))) {
+      try {
+        userQuotaManager.get().checkQuota(dag.getStartNodes());
+        flowSpec.getConfigAsProperties().setProperty(ServiceConfigKeys.GOBBLIN_SERVICE_ADHOC_FLOW, "true");
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
     return new AddSpecResponse<>(response);
   }
 

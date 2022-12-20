@@ -56,6 +56,7 @@ import org.apache.gobblin.hive.avro.HiveAvroSerDeManager;
 public class LocalHiveMetastoreTestUtils {
   private static LocalHiveMetastoreTestUtils instance;
   private IMetaStoreClient localMetastoreClient;
+  File tmpDir;
 
   private LocalHiveMetastoreTestUtils() throws IOException {
     try {
@@ -63,12 +64,12 @@ public class LocalHiveMetastoreTestUtils {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    File tmpDir = Files.createTempDir();
+    this.tmpDir = Files.createTempDir();
     tmpDir.deleteOnExit();
     Properties p = System.getProperties();
     p.setProperty("derby.system.home", tmpDir.getAbsolutePath());
     this.localMetastoreClient =
-        HiveMetastoreClientPool.get(new Properties(), Optional.<String>absent()).getClient().get();
+        HiveMetastoreClientPool.get(p, Optional.<String>absent()).getClient().get();
   }
 
   static {
@@ -125,7 +126,7 @@ public class LocalHiveMetastoreTestUtils {
   }
 
   public Table createTestAvroTable(String dbName, String tableName, List<String> partitionFieldNames) throws Exception {
-    return createTestAvroTable(dbName, tableName, "/tmp/" + tableName, partitionFieldNames, true);
+    return createTestAvroTable(dbName, tableName, new File(this.tmpDir,dbName).getAbsolutePath(), partitionFieldNames, true);
   }
 
   public Table createTestAvroTable(String dbName, String tableName, String tableSdLoc,
@@ -150,7 +151,7 @@ public class LocalHiveMetastoreTestUtils {
   }
 
   public void createTestDb(String dbName) throws Exception {
-    Database db = new Database(dbName, "Some description", "/tmp/" + dbName, new HashMap<String, String>());
+    Database db = new Database(dbName, "Some description", new File(this.tmpDir,dbName).getAbsolutePath(), new HashMap<String, String>());
     try {
       this.localMetastoreClient.createDatabase(db);
     } catch (AlreadyExistsException e) {
