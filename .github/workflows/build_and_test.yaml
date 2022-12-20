@@ -93,6 +93,7 @@ jobs:
     timeout-minutes: 120
     env:
       GOBBLIN_GRADLE_OPTS: "--no-daemon -Dgobblin.metastore.testing.embeddedMysqlEnabled=false -PusePreinstalledMysql=true -PprintTestOutput"
+
     strategy:
       matrix:
         test-group: ["Core Tests", "Service Tests", "Module Tests", "Other Tests"]

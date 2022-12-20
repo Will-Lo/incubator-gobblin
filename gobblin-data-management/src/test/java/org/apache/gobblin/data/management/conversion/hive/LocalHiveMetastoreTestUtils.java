@@ -69,7 +69,7 @@ public class LocalHiveMetastoreTestUtils {
     Properties p = System.getProperties();
     p.setProperty("derby.system.home", tmpDir.getAbsolutePath());
     this.localMetastoreClient =
-        HiveMetastoreClientPool.get(new Properties(), Optional.<String>absent()).getClient().get();
+        HiveMetastoreClientPool.get(p, Optional.<String>absent()).getClient().get();
   }
 
   static {
