@@ -69,13 +69,11 @@ public class HiveMaterializerTest {
   public void setup() throws Exception {
     this.jdbcConnector = HiveJdbcConnector.newEmbeddedConnector(2);
     this.dataFile = new File(getClass().getClassLoader().getResource("hiveMaterializerTest/source/").toURI());
-    this.localHiveMetastore.dropDatabaseIfExists(this.dbName);
-    this.localHiveMetastore.createTestDb(this.dbName);
     this.jdbcConnector.executeStatements(
+        String.format("CREATE DATABASE IF NOT EXISTS %s LOCATION '%s'", this.dbName, Files.createTempDir().getAbsolutePath()),
         String.format("CREATE EXTERNAL TABLE %s.%s (id STRING, name String) PARTITIONED BY (%s String) "
                 + "ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE",
-            this.dbName, this.sourceTableName, this.partitionColumn));
-    this.jdbcConnector.executeStatements(
+            this.dbName, this.sourceTableName, this.partitionColumn),
         String.format("ALTER TABLE %s.%s ADD PARTITION (part = 'part1') LOCATION '%s'",
             this.dbName, this.sourceTableName, this.dataFile.getAbsolutePath() + "/part1"),
         String.format("ALTER TABLE %s.%s ADD PARTITION (part = 'part2') LOCATION '%s'",
