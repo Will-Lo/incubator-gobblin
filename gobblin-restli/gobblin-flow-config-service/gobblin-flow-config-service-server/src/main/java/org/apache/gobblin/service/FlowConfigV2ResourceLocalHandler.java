@@ -16,13 +16,6 @@
  */
 package org.apache.gobblin.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -115,45 +108,6 @@ public class FlowConfigV2ResourceLocalHandler extends FlowConfigResourceLocalHan
     return new CreateKVResponse<>(new ComplexResourceKey<>(flowConfig.getId(), flowStatusId), flowConfig, httpStatus);
   }
 
-  private String getErrorMessage(FlowSpec flowSpec) {
-    StringBuilder message = new StringBuilder("Flow was not compiled successfully.");
-    Hashtable<String, ArrayList<String>> allErrors = new Hashtable<>();
-
-    if (!flowSpec.getCompilationErrors().isEmpty()) {
-      message.append(" Compilation errors encountered (Sorted by relevance): ");
-      FlowSpec.CompilationError[] errors = flowSpec.getCompilationErrors().stream().distinct().toArray(FlowSpec.CompilationError[]::new);
-      Arrays.sort(errors, Comparator.comparingInt(c -> ((FlowSpec.CompilationError)c).errorPriority));
-      int errorIdSingleHop = 1;
-      int errorIdMultiHop = 1;
-
-      ArrayList<String> singleHopErrors = new ArrayList<>();
-      ArrayList<String> multiHopErrors = new ArrayList<>();
-
-      for (FlowSpec.CompilationError error: errors) {
-        if (error.errorPriority == 0) {
-          singleHopErrors.add(String.format("ERROR %s of single-step data movement: ", errorIdSingleHop) + error.errorMessage.replace("\n", " ").replace("\t", ""));
-          errorIdSingleHop++;
-        } else {
-          multiHopErrors.add(String.format("ERROR %s of multi-step data movement: ", errorIdMultiHop) + error.errorMessage.replace("\n", " ").replace("\t", ""));
-          errorIdMultiHop++;
-        }
-      }
-
-      allErrors.put("singleHopErrors", singleHopErrors);
-      allErrors.put("multiHopErrors", multiHopErrors);
-    }
-
-    allErrors.put("message", new ArrayList<>(Collections.singletonList(message.toString())));
-    ObjectMapper mapper = new ObjectMapper();
-
-    try {
-      return mapper.writeValueAsString(allErrors);
-    } catch (JsonProcessingException e) {
-      log.error("Flow Spec {} errored on Json processing", flowSpec.toString(), e);
-      e.printStackTrace();
-    }
-    return "Could not form JSON in FlowConfigV2ResourceLocalHandler";
-  }
   /**
    * Note: this method is only implemented for testing, normally partial update would be called in
    * GobblinServiceFlowConfigResourceHandler.partialUpdateFlowConfig
