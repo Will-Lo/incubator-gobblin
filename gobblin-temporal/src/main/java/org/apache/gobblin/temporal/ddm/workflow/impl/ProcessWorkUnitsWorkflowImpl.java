@@ -29,6 +29,7 @@ import org.apache.gobblin.temporal.ddm.work.WUProcessingSpec;
 import org.apache.gobblin.temporal.ddm.work.WorkUnitClaimCheck;
 import org.apache.gobblin.temporal.ddm.work.assistance.Help;
 import org.apache.gobblin.temporal.ddm.work.styles.FileSystemJobStateful;
+import org.apache.gobblin.temporal.ddm.workflow.CommitStepWorkflow;
 import org.apache.gobblin.temporal.ddm.workflow.ProcessWorkUnitsWorkflow;
 import org.apache.gobblin.temporal.ddm.work.EagerFsDirBackedWorkUnitClaimCheckWorkload;
 import org.apache.gobblin.temporal.util.nesting.work.WFAddr;
@@ -43,10 +44,14 @@ public class ProcessWorkUnitsWorkflowImpl implements ProcessWorkUnitsWorkflow {
   public int process(WUProcessingSpec workSpec) {
     Workload<WorkUnitClaimCheck> workload = createWorkload(workSpec);
     NestingExecWorkflow<WorkUnitClaimCheck> processingWorkflow = createProcessingWorkflow(workSpec);
-    return processingWorkflow.performWorkload(
+    int workunitsProcessed = processingWorkflow.performWorkload(
         WFAddr.ROOT, workload, 0,
         workSpec.getTuning().getMaxBranchesPerTree(), workSpec.getTuning().getMaxSubTreesPerTree(), Optional.empty()
     );
+    if (workunitsProcessed > 0) {
+      CommitStepWorkflow commitWorkflow = createCommitStepWorkflow();
+      commitWorkflow.commit(workSpec);
+    }
   }
 
   protected Workload<WorkUnitClaimCheck> createWorkload(WUProcessingSpec workSpec) {
@@ -60,5 +65,12 @@ public class ProcessWorkUnitsWorkflowImpl implements ProcessWorkUnitsWorkflow {
         .build();
     // TODO: figure out how to incorporate multiple different concrete `NestingExecWorkflow` sub-workflows in the same super-workflow!!!!
     return Workflow.newChildWorkflowStub(NestingExecWorkflow.class, childOpts);
+  }
+
+  protected CommitStepWorkflow createCommitStepWorkflow() {
+    ChildWorkflowOptions childOpts =
+        ChildWorkflowOptions.newBuilder().setParentClosePolicy(ParentClosePolicy.PARENT_CLOSE_POLICY_ABANDON).build();
+
+    return Workflow.newChildWorkflowStub(CommitStepWorkflow.class, childOpts);
   }
 }

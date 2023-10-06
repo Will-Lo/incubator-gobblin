@@ -56,7 +56,7 @@ public class UnixTimestampRecursiveCopyableDataset extends RecursiveCopyableData
   private static final String CONFIG_PREFIX = CopyConfiguration.COPY_PREFIX + ".recursive";
   public static final String VERSION_SELECTION_POLICY = CONFIG_PREFIX + ".version.selection.policy";
   public static final String TIMESTAMP_REGEEX = CONFIG_PREFIX + ".timestamp.pattern";
-  public static final String DEFAULT_TIMESTAMP_REGEX = ".*/([0-9]{13}).*/.*";
+  public static final String DEFAULT_TIMESTAMP_REGEX = "c";
   private final String lookbackTime;
   private final Period lookbackPeriod;
   private final LocalDateTime currentTime;
