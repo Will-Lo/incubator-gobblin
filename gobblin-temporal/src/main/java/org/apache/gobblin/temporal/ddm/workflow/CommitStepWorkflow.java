@@ -32,5 +32,5 @@ public interface CommitStepWorkflow {
      * Execution completes when this method finishes execution.
      */
     @WorkflowMethod
-    int commit(Workload<WorkUnitClaimCheck> workload);
+    int commit(WorkUnitClaimCheck wu);
 }

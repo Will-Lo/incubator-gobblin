@@ -18,6 +18,7 @@
 package org.apache.gobblin.runtime;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.log;
-import org.slf4j.logFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;

@@ -50,7 +50,9 @@ public class ProcessWorkUnitsWorkflowImpl implements ProcessWorkUnitsWorkflow {
     );
     if (workunitsProcessed > 0) {
       CommitStepWorkflow commitWorkflow = createCommitStepWorkflow();
-      commitWorkflow.commit(workSpec);
+      //TODO: Have an easy way to only expose the job state to get the global configs
+      WorkUnitClaimCheck commitWorkloadJobState = workload.getSpan(0,1).get().next();
+      commitWorkflow.commit(commitWorkloadJobState);
     }
   }
 
