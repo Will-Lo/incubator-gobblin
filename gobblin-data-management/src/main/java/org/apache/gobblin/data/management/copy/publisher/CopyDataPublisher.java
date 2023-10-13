@@ -257,7 +257,7 @@ public class CopyDataPublisher extends DataPublisher implements UnpublishedHandl
     executeCommitSequence(prePublish);
     if (hasCopyableFiles(datasetWorkUnitStates)) {
       // Targets are always absolute, so we start moving from root (will skip any existing directories).
-      HadoopUtils.renameRecursively(this.fs, datasetWriterOutputPath, new Path("/"));
+      HadoopUtils.renameRecursively(this.fs, datasetWriterOutputPath, new Path("/"), true);
     } else {
       log.info(String.format("[%s] No copyable files in dataset. Proceeding to postpublish steps.", datasetAndPartition.identifier()));
     }

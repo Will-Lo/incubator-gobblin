@@ -17,6 +17,7 @@
 
 package org.apache.gobblin.temporal.ddm.launcher;
 
+import io.temporal.client.WorkflowOptions;
 import java.net.URI;
 import java.util.List;
 import java.util.Properties;
@@ -25,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 import com.typesafe.config.ConfigFactory;
-import io.temporal.client.WorkflowOptions;
 import org.apache.hadoop.fs.Path;
 
 import org.apache.gobblin.metrics.Tag;
@@ -75,6 +75,7 @@ public class ProcessWorkUnitsJobLauncher extends GobblinTemporalJobLauncher {
       URI nameNodeUri = new URI(this.jobProps.getProperty(GOBBLIN_TEMPORAL_JOB_LAUNCHER_ARG_NAME_NODE_URI, "<<not-set>>"));
       // NOTE: `Path` is challenging for temporal to ser/de, but still pre-construct as `Path`, to validate prop str contents
       Path workUnitsDir = new Path(this.jobProps.getProperty(GOBBLIN_TEMPORAL_JOB_LAUNCHER_ARG_WORK_UNITS_DIR, "<<not-set>>"));
+
       WUProcessingSpec wuSpec = new WUProcessingSpec(nameNodeUri, workUnitsDir.toString());
       if (this.jobProps.containsKey(GOBBLIN_TEMPORAL_JOB_LAUNCHER_ARG_WORK_MAX_BRANCHES_PER_TREE) &&
           this.jobProps.containsKey(GOBBLIN_TEMPORAL_JOB_LAUNCHER_ARG_WORK_MAX_SUB_TREES_PER_TREE)) {

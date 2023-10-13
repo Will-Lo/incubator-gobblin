@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory;
 import io.temporal.api.enums.v1.ParentClosePolicy;
 import io.temporal.workflow.ChildWorkflowOptions;
 import io.temporal.workflow.Workflow;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.gobblin.temporal.cluster.WorkerConfig;
 import org.apache.gobblin.temporal.ddm.work.WUProcessingSpec;
@@ -37,6 +38,7 @@ import org.apache.gobblin.temporal.util.nesting.work.Workload;
 import org.apache.gobblin.temporal.util.nesting.workflow.NestingExecWorkflow;
 
 
+@Slf4j
 public class ProcessWorkUnitsWorkflowImpl implements ProcessWorkUnitsWorkflow {
   public static final String CHILD_WORKFLOW_ID_BASE = "NestingExecWorkUnits";
 
@@ -50,10 +52,10 @@ public class ProcessWorkUnitsWorkflowImpl implements ProcessWorkUnitsWorkflow {
     );
     if (workunitsProcessed > 0) {
       CommitStepWorkflow commitWorkflow = createCommitStepWorkflow();
-      //TODO: Have an easy way to only expose the job state to get the global configs
-      WorkUnitClaimCheck commitWorkloadJobState = workload.getSpan(0,1).get().next();
-      commitWorkflow.commit(commitWorkloadJobState);
+      int result = commitWorkflow.commit(workSpec);
+      return result;
     }
+    return 0;
   }
 
   protected Workload<WorkUnitClaimCheck> createWorkload(WUProcessingSpec workSpec) {

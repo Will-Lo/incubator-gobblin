@@ -341,12 +341,12 @@ public final class SafeDatasetCommit implements Callable<Void> {
       if (taskState.getWorkingState() != WorkUnitState.WorkingState.SUCCESSFUL
           && this.jobCommitPolicy == JobCommitPolicy.COMMIT_ON_FULL_SUCCESS) {
         // The dataset state is set to FAILED if any task failed and COMMIT_ON_FULL_SUCCESS is used
+        log.info("Failed task state for " + taskState.getWorkunit().getOutputFilePath());
         datasetState.setState(JobState.RunningState.FAILED);
         datasetState.incrementJobFailures();
         Optional<String> taskStateException = taskState.getTaskFailureException();
         log.warn("At least one task did not get committed successfully. Setting dataset state to FAILED. "
             + (taskStateException.isPresent() ? taskStateException.get() : "Exception not set."));
-        return;
       }
     }
 

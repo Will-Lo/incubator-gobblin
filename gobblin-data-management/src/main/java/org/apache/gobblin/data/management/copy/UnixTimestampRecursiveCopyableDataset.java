@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.FileStatus;
@@ -51,6 +52,7 @@ import org.apache.gobblin.util.filters.AndPathFilter;
  * The default regex will match the first occurrence of a directory matching the pattern after the dataset root
  *
  */
+@Slf4j
 public class UnixTimestampRecursiveCopyableDataset extends RecursiveCopyableDataset {
 
   private static final String CONFIG_PREFIX = CopyConfiguration.COPY_PREFIX + ".recursive";
@@ -124,9 +126,11 @@ public class UnixTimestampRecursiveCopyableDataset extends RecursiveCopyableData
     for (FileStatus fileStatus : files) {
       String relativePath = PathUtils.relativizePath(PathUtils.getPathWithoutSchemeAndAuthority(fileStatus.getPath()), datasetRoot()).toString();
       Matcher matcher = timestampPattern.matcher(relativePath);
+      log.info("Matching " + relativePath + " with " + timestampPattern.pattern());
       if (!matcher.matches()) {
         continue;
       }
+      log.info("Matched " + relativePath + " with " + timestampPattern.pattern() + " and group " + matcher.group(1));
       String timestampStr = matcher.group(1);
       String rootPath = relativePath.substring(0, relativePath.indexOf(timestampStr));
       Long unixTimestamp = Long.parseLong(timestampStr);

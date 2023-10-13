@@ -15,22 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.gobblin.temporal.ddm.workflow;
+package org.apache.gobblin.temporal.ddm.activity;
 
-import io.temporal.workflow.Promise;
-import io.temporal.workflow.WorkflowInterface;
-import io.temporal.workflow.WorkflowMethod;
+import io.temporal.activity.ActivityInterface;
+import io.temporal.activity.ActivityMethod;
 import org.apache.gobblin.temporal.ddm.work.WUProcessingSpec;
 import org.apache.gobblin.temporal.ddm.work.WorkUnitClaimCheck;
 
 
-@WorkflowInterface
-public interface CommitStepWorkflow {
-
-    /**
-     * This is the method that is executed when the Workflow Execution is started. The Workflow
-     * Execution completes when this method finishes execution.
-     */
-    @WorkflowMethod
-    int commit(WUProcessingSpec workSpec);
+/** Activity for processing/executing a {@link org.apache.gobblin.source.workunit.WorkUnit}, provided by claim-check */
+@ActivityInterface
+public interface CommitActivity {
+  @ActivityMethod
+    // CAUTION: void return type won't work, as apparently it mayn't be the return type for `io.temporal.workflow.Functions.Func1`!
+  int commit(WUProcessingSpec workSpec);
 }

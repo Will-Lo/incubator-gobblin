@@ -26,6 +26,8 @@ import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
 import io.temporal.worker.WorkerOptions;
 
+import io.temporal.worker.WorkerOptions;
+import java.time.Duration;
 import org.apache.gobblin.temporal.GobblinTemporalConfigurationKeys;
 import org.apache.gobblin.util.ConfigUtils;
 
@@ -68,7 +70,9 @@ public abstract class AbstractTemporalWorker implements TemporalWorker {
     }
 
     protected WorkerOptions createWorkerOptions() {
-        return null;
+      return WorkerOptions.newBuilder()
+          .setDefaultDeadlockDetectionTimeout(Duration.ofSeconds(60).toMillis())
+          .build();
     }
 
     /** @return workflow types for *implementation* classes (not interface) */

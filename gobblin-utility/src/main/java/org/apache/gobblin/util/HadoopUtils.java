@@ -532,7 +532,7 @@ public class HadoopUtils {
    * @param from path of the data to be moved
    * @param to path of the data to be moved
    */
-  public static void renameRecursively(FileSystem fileSystem, Path from, Path to) throws IOException {
+  public static void renameRecursively(FileSystem fileSystem, Path from, Path to, boolean simulate) throws IOException {
 
     log.info(String.format("Recursively renaming %s in %s to %s.", from, fileSystem.getUri(), to));
 
@@ -548,7 +548,7 @@ public class HadoopUtils {
       }
 
       futures.add(executorService
-          .submit(new RenameRecursively(throttledFS, fileSystem.getFileStatus(from), to, executorService, futures)));
+          .submit(new RenameRecursively(throttledFS, fileSystem.getFileStatus(from), to, executorService, futures, simulate)));
       int futuresUsed = 0;
       while (!futures.isEmpty()) {
         try {
@@ -615,6 +615,7 @@ public class HadoopUtils {
     private final Path to;
     private final ExecutorService executorService;
     private final Queue<Future<?>> futures;
+    private final boolean simulate;
 
     @Override
     public void run() {
@@ -624,7 +625,7 @@ public class HadoopUtils {
         boolean moveSucessful;
 
         try {
-          moveSucessful = this.from.isDirectory() ? safeRenameIfNotExists(this.fileSystem, this.from.getPath(), this.to) : unsafeRenameIfNotExists(this.fileSystem, this.from.getPath(), this.to);
+          moveSucessful = this.from.isDirectory() ? safeRenameIfNotExists(this.fileSystem, this.from.getPath(), this.to, this.simulate) : unsafeRenameIfNotExists(this.fileSystem, this.from.getPath(), this.to, this.simulate);
         } catch (AccessDeniedException e) {
           // If an AccessDeniedException occurs for a directory then assume that it exists and continue the
           // recursive renaming. If the error occurs for a file then re-raise the exception since the existence check
@@ -643,7 +644,7 @@ public class HadoopUtils {
                   this.from.getPath().toString() + Path.SEPARATOR));
               Path toFilePath = new Path(this.to, relativeFilePath);
               this.futures.add(this.executorService.submit(
-                  new RenameRecursively(this.fileSystem, fromFile, toFilePath, this.executorService, this.futures)));
+                  new RenameRecursively(this.fileSystem, fromFile, toFilePath, this.executorService, this.futures, this.simulate)));
             }
           } else {
             log.info(String.format("File already exists %s. Will not rewrite", this.to));
@@ -673,8 +674,8 @@ public class HadoopUtils {
    * @return true if rename succeeded, false if the target already exists.
    * @throws IOException if rename failed for reasons other than target exists.
    */
-  public synchronized static boolean safeRenameIfNotExists(FileSystem fs, Path from, Path to) throws IOException {
-    return unsafeRenameIfNotExists(fs, from, to);
+  public synchronized static boolean safeRenameIfNotExists(FileSystem fs, Path from, Path to, boolean simulate) throws IOException {
+    return unsafeRenameIfNotExists(fs, from, to, simulate);
   }
 
   /**
@@ -686,7 +687,7 @@ public class HadoopUtils {
    * @return true if rename succeeded, false if the target already exists.
    * @throws IOException if rename failed for reasons other than target exists.
    */
-  public static boolean unsafeRenameIfNotExists(FileSystem fs, Path from, Path to) throws IOException {
+  public static boolean unsafeRenameIfNotExists(FileSystem fs, Path from, Path to, boolean simulate) throws IOException {
     if (!fs.exists(to)) {
       if (!fs.exists(to.getParent())) {
         fs.mkdirs(to.getParent());
@@ -698,6 +699,9 @@ public class HadoopUtils {
         }
 
         return false;
+      }
+      if (simulate) {
+        log.info("Simulating rename from " + from + " to " + to);
       }
       return true;
     }

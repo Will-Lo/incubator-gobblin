@@ -238,21 +238,20 @@ public class TaskStateCollectorService extends AbstractScheduledService {
       }});
 
     if (taskStateNames == null || taskStateNames.isEmpty()) {
-      log.debug("No output task state files found in " + outputTaskStateDir);
+      log.info("No output task state files found in " + outputTaskStateDir);
       return null;
     }
 
     final Queue<TaskState> taskStateQueue = Queues.newConcurrentLinkedQueue();
     try (ParallelRunner stateSerDeRunner = new ParallelRunner(numDeserializerThreads, null)) {
       for (final String taskStateName : taskStateNames) {
-        log.debug("Found output task state file " + taskStateName);
+        log.info("Found output task state file " + taskStateName);
         // Deserialize the TaskState and delete the file
         stateSerDeRunner.submitCallable(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
             TaskState taskState = taskStateStore.getAll(outputTaskStateDir.getName(), taskStateName).get(0);
             taskStateQueue.add(taskState);
-            taskStateStore.delete(outputTaskStateDir.getName(), taskStateName);
             return null;
           }
         }, "Deserialize state for " + taskStateName);

@@ -44,7 +44,6 @@ public class WUProcessingSpec implements FileSystemApt, FileSystemJobStateful {
   @NonNull private URI fileSystemUri;
   @NonNull private String workUnitsDir;
   @NonNull private Tuning tuning = Tuning.DEFAULT;
-
   @JsonIgnore // (because no-arg method resembles 'java bean property')
   @Override
   public State getFileSystemConfig() {
