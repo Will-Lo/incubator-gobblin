@@ -347,6 +347,7 @@ public final class SafeDatasetCommit implements Callable<Void> {
         Optional<String> taskStateException = taskState.getTaskFailureException();
         log.warn("At least one task did not get committed successfully. Setting dataset state to FAILED. "
             + (taskStateException.isPresent() ? taskStateException.get() : "Exception not set."));
+        return;
       }
     }
 
