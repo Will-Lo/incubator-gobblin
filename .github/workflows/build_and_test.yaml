@@ -88,6 +88,8 @@ jobs:
       - name: Run CheckStyle and FindBugs
         run: |
           ./gradlew --no-daemon javadoc findbugsMain checkstyleMain checkstyleTest checkstyleJmh
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@b374143c1149a9115d881581d29b8390bbcbb59c    # 3.22.11
 
   run_tests:
     timeout-minutes: 120
