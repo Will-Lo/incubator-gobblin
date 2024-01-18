@@ -28,6 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
+
+import org.apache.gobblin.service.modules.orchestration.AbstractUserQuotaManager;
+import org.apache.gobblin.service.modules.orchestration.ServiceAzkabanConfigKeys;
 import org.apache.hadoop.fs.Path;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jgit.api.Git;
@@ -36,7 +39,6 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.util.FS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.MySQLContainer;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -60,9 +62,7 @@ import org.apache.gobblin.runtime.api.Spec;
 import org.apache.gobblin.runtime.spec_catalog.FlowCatalog;
 import org.apache.gobblin.service.modules.core.GobblinServiceManager;
 import org.apache.gobblin.service.modules.flow.MockedSpecCompiler;
-import org.apache.gobblin.service.modules.orchestration.AbstractUserQuotaManager;
 import org.apache.gobblin.service.modules.orchestration.DagManager;
-import org.apache.gobblin.service.modules.orchestration.ServiceAzkabanConfigKeys;
 import org.apache.gobblin.service.monitoring.FsJobStatusRetriever;
 import org.apache.gobblin.service.monitoring.GitConfigMonitor;
 import org.apache.gobblin.testing.AssertWithBackoff;
@@ -120,7 +120,10 @@ public class GobblinServiceManagerTest {
   private GobblinServiceManager gobblinServiceManager;
   private FlowConfigV2Client flowConfigClient;
 
-  private MySQLContainer mysql;
+  private ITestMetastoreDatabase mysql;
+
+  private static final String TEST_USER = "testUser";
+  private static final String TEST_PASSWORD = "testPassword";
 
   private Git gitForPush;
   private TestingServer testingServer;
@@ -136,13 +139,7 @@ public class GobblinServiceManagerTest {
     cleanUpDir(SERVICE_WORK_DIR);
     cleanUpDir(SPEC_STORE_PARENT_DIR);
 
-    mysql = new MySQLContainer("mysql:" + TestServiceDatabaseConfig.MysqlVersion);
-    mysql.start();
-    serviceCoreProperties.put(ServiceConfigKeys.SERVICE_DB_URL_KEY, mysql.getJdbcUrl());
-    serviceCoreProperties.put(ServiceConfigKeys.SERVICE_DB_USERNAME, mysql.getUsername());
-    serviceCoreProperties.put(ServiceConfigKeys.SERVICE_DB_PASSWORD, mysql.getPassword());
-
-    ITestMetastoreDatabase testMetastoreDatabase = TestMetastoreDatabaseFactory.get();
+    mysql = TestMetastoreDatabaseFactory.get();
 
     testingServer = new TestingServer(true);
 
@@ -150,9 +147,13 @@ public class GobblinServiceManagerTest {
     flowProperties.put(ServiceConfigKeys.FLOW_SOURCE_IDENTIFIER_KEY, TEST_SOURCE_NAME);
     flowProperties.put(ServiceConfigKeys.FLOW_DESTINATION_IDENTIFIER_KEY, TEST_SINK_NAME);
 
-    serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_DB_USER_KEY, "testUser");
-    serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_DB_PASSWORD_KEY, "testPassword");
-    serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_DB_URL_KEY, testMetastoreDatabase.getJdbcUrl());
+    serviceCoreProperties.put(ServiceConfigKeys.SERVICE_DB_URL_KEY, mysql.getJdbcUrl());
+    serviceCoreProperties.put(ServiceConfigKeys.SERVICE_DB_USERNAME, TEST_USER);
+    serviceCoreProperties.put(ServiceConfigKeys.SERVICE_DB_PASSWORD, TEST_PASSWORD);
+    serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_DB_USER_KEY, TEST_USER);
+    serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_DB_PASSWORD_KEY, TEST_PASSWORD);
+    serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_DB_URL_KEY, mysql.getJdbcUrl());
+
     serviceCoreProperties.put("zookeeper.connect", testingServer.getConnectString());
     serviceCoreProperties.put(ConfigurationKeys.STATE_STORE_FACTORY_CLASS_KEY, MysqlJobStatusStateStoreFactory.class.getName());
 
@@ -259,8 +260,6 @@ public class GobblinServiceManagerTest {
     } catch(Exception e) {
       System.err.println("Failed to close ZK testing server.");
     }
-
-    mysql.stop();
   }
 
   /**

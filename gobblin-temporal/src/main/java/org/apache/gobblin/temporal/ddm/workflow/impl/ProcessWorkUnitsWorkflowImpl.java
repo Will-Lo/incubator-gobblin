@@ -36,6 +36,7 @@ import org.apache.gobblin.temporal.ddm.work.EagerFsDirBackedWorkUnitClaimCheckWo
 import org.apache.gobblin.temporal.util.nesting.work.WorkflowAddr;
 import org.apache.gobblin.temporal.util.nesting.work.Workload;
 import org.apache.gobblin.temporal.util.nesting.workflow.NestingExecWorkflow;
+import org.slf4j.MDC;
 
 
 @Slf4j
@@ -45,6 +46,7 @@ public class ProcessWorkUnitsWorkflowImpl implements ProcessWorkUnitsWorkflow {
 
   @Override
   public int process(WUProcessingSpec workSpec) {
+    MDC.put("workflowId", Workflow.getInfo().getWorkflowId());
     Workload<WorkUnitClaimCheck> workload = createWorkload(workSpec);
     NestingExecWorkflow<WorkUnitClaimCheck> processingWorkflow = createProcessingWorkflow(workSpec);
     int workunitsProcessed = processingWorkflow.performWorkload(
