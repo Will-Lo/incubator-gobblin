@@ -36,6 +36,7 @@ import io.temporal.workflow.Workflow;
 
 import org.apache.gobblin.temporal.util.nesting.work.WorkflowAddr;
 import org.apache.gobblin.temporal.util.nesting.work.Workload;
+import org.slf4j.MDC;
 
 
 /** Core skeleton of {@link NestingExecWorkflow}: realizing classes need only define {@link #launchAsyncActivity} */
