@@ -31,6 +31,7 @@ import com.google.common.cache.CacheBuilder;
 
 import com.typesafe.config.Config;
 
+import org.apache.gobblin.metrics.event.TimingEvent;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -211,8 +212,8 @@ public class Help {
 
   public static void propagateGaaSFlowExecutionContext(JobState jobState) {
     // TODO: log4j2 has better syntax around conditional logging such that the key does not need to be included in the value
-    MDC.put(ConfigurationKeys.FLOW_NAME_KEY, String.format("%s:%s",ConfigurationKeys.FLOW_NAME_KEY, jobState.getProp(ConfigurationKeys.FLOW_NAME_KEY, "<<NOT SET>>")));
-    MDC.put(ConfigurationKeys.FLOW_GROUP_KEY, String.format("%s:%s",ConfigurationKeys.FLOW_GROUP_KEY, jobState.getProp(ConfigurationKeys.FLOW_GROUP_KEY, "<<NOT SET>>")));
-    MDC.put(ConfigurationKeys.FLOW_EXECUTION_ID_KEY, String.format("%s:%s",ConfigurationKeys.FLOW_EXECUTION_ID_KEY, jobState.getProp(ConfigurationKeys.FLOW_EXECUTION_ID_KEY, "<<NOT SET>>")));
+    MDC.put(ConfigurationKeys.FLOW_NAME_KEY, String.format("%s:%s", TimingEvent.FlowEventConstants.FLOW_NAME_FIELD, jobState.getProp(ConfigurationKeys.FLOW_NAME_KEY, "<<NOT SET>>")));
+    MDC.put(ConfigurationKeys.FLOW_GROUP_KEY, String.format("%s:%s", TimingEvent.FlowEventConstants.FLOW_GROUP_FIELD, jobState.getProp(ConfigurationKeys.FLOW_GROUP_KEY, "<<NOT SET>>")));
+    MDC.put(ConfigurationKeys.FLOW_EXECUTION_ID_KEY, String.format("%s:%s", TimingEvent.FlowEventConstants.FLOW_EXECUTION_ID_FIELD, jobState.getProp(ConfigurationKeys.FLOW_EXECUTION_ID_KEY, "<<NOT SET>>")));
   }
 }
