@@ -66,6 +66,7 @@ import com.google.common.util.concurrent.ServiceManager;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,7 +79,7 @@ import org.apache.gobblin.configuration.ConfigurationKeys;
 import org.apache.gobblin.configuration.DynamicConfigGenerator;
 import org.apache.gobblin.configuration.State;
 import org.apache.gobblin.fsm.FiniteStateMachine;
-import org.apache.gobblin.metastore.FsStateStore;
+import org.apache.gobblin.metastore.FsStateStoreFactory;
 import org.apache.gobblin.metastore.StateStore;
 import org.apache.gobblin.metrics.GobblinMetrics;
 import org.apache.gobblin.metrics.MultiReporterException;
@@ -261,7 +262,9 @@ public class MRJobLauncher extends AbstractJobLauncher {
     // The state store base is the root directory and the last two elements of the path are used as the storeName and
     // tableName. Create the state store with the root at jobOutputPath. The task state will be stored at
     // jobOutputPath/output/taskState.tst, so output will be the storeName.
-    taskStateStore = new FsStateStore<>(this.fs, jobOutputPath.toString(), TaskState.class);
+    Config stateStoreConfig = ConfigFactory.parseProperties(jobProps)
+        .withValue(ConfigurationKeys.STATE_STORE_ROOT_DIR_KEY, ConfigValueFactory.fromAnyRef(this.jobOutputPath.toString()));
+    this.taskStateStore = (new FsStateStoreFactory()).createStateStore(stateStoreConfig, TaskState.class);
 
     this.taskStateCollectorService =
         new TaskStateCollectorService(jobProps, this.jobContext.getJobState(), this.eventBus, this.eventSubmitter,
@@ -793,8 +796,9 @@ public class MRJobLauncher extends AbstractJobLauncher {
             .newInstance().createCustomizedProgresser(context);
 
         this.fs = FileSystem.get(context.getConfiguration());
-        this.taskStateStore =
-            new FsStateStore<>(this.fs, FileOutputFormat.getOutputPath(context).toUri().getPath(), TaskState.class);
+        Config stateStoreConfig = ConfigFactory.parseProperties(gobblinJobState.getProperties())
+            .withValue(ConfigurationKeys.STATE_STORE_ROOT_DIR_KEY, ConfigValueFactory.fromAnyRef(FileOutputFormat.getOutputPath(context).toUri().getPath()));
+        this.taskStateStore = (new FsStateStoreFactory()).createStateStore(stateStoreConfig, TaskState.class);
         String jobStateFileName = context.getConfiguration().get(ConfigurationKeys.JOB_STATE_DISTRIBUTED_CACHE_NAME);
         Optional<URI> jobStateFileUri = getStateFileUriForJob(context.getConfiguration(), jobStateFileName);
         if (jobStateFileUri.isPresent()) {
