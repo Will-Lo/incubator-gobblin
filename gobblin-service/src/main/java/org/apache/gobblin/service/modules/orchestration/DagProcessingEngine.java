@@ -145,6 +145,7 @@ public class DagProcessingEngine extends AbstractIdleService {
         }
         DagProc<?> dagProc = dagTask.host(dagProcFactory);
         try {
+
           dagProc.process(dagManagementStateStore, dagProcEngineMetrics);
           dagTask.conclude();
           log.info("Concluded dagTask : {}", dagTask);

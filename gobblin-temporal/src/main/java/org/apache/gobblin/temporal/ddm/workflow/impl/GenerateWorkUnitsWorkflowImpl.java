@@ -34,7 +34,7 @@ import org.apache.gobblin.temporal.workflows.metrics.EventSubmitterContext;
 
 @Slf4j
 public class GenerateWorkUnitsWorkflowImpl implements GenerateWorkUnitsWorkflow {
-  public static final Duration startToCloseTimeout = Duration.ofMinutes(90); // TODO: make configurable
+  public static final Duration startToCloseTimeout = Duration.ofMinutes(360); // TODO: make configurable
 
   private static final RetryOptions ACTIVITY_RETRY_OPTS = RetryOptions.newBuilder()
       .setInitialInterval(Duration.ofSeconds(3))

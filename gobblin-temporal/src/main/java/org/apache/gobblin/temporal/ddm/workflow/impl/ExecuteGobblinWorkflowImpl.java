@@ -64,7 +64,7 @@ import org.apache.gobblin.util.PropertiesUtils;
 public class ExecuteGobblinWorkflowImpl implements ExecuteGobblinWorkflow {
   public static final String PROCESS_WORKFLOW_ID_BASE = "ProcessWorkUnits";
 
-  public static final Duration genWUsStartToCloseTimeout = Duration.ofHours(2); // TODO: make configurable... also add activity heartbeats
+  public static final Duration genWUsStartToCloseTimeout = Duration.ofHours(8); // TODO: make configurable... also add activity heartbeats
 
   private static final RetryOptions GEN_WUS_ACTIVITY_RETRY_OPTS = RetryOptions.newBuilder()
       .setInitialInterval(Duration.ofSeconds(3))
@@ -76,6 +76,7 @@ public class ExecuteGobblinWorkflowImpl implements ExecuteGobblinWorkflow {
   private static final ActivityOptions GEN_WUS_ACTIVITY_OPTS = ActivityOptions.newBuilder()
       .setStartToCloseTimeout(genWUsStartToCloseTimeout)
       .setRetryOptions(GEN_WUS_ACTIVITY_RETRY_OPTS)
+      .setHeartbeatTimeout()
       .build();
 
   private final GenerateWorkUnits genWUsActivityStub = Workflow.newActivityStub(GenerateWorkUnits.class,
