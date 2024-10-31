@@ -43,7 +43,6 @@ subprojects {
         //Since testCompile inherit from compile, so we cannot use testCompile to import dependency for log4j
         customTestCompile externalDependency.log4j
         customTestCompile externalDependency.slf4jToLog4j
-
         // Required to add JDK's tool jar, which is required to run byteman tests.
         testCompile (files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs()))
       }
